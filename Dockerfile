@@ -53,9 +53,8 @@ RUN apk add --no-cache \
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Copy built application from builder
+# Copy built application from builder (includes backend and frontend in dist/public)
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/client/dist ./client/dist
 
 # Expose port (Coolify will map this)
 EXPOSE 5000

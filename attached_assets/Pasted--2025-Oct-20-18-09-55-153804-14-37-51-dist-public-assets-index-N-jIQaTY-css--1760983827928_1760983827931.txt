@@ -1,0 +1,73 @@
+
+2025-Oct-20 18:09:55.153804
+#14 37.51 ../dist/public/assets/index-N-jIQaTY.css                            103.67 kB │ gzip:  16.90 kB
+2025-Oct-20 18:09:55.153804
+#14 37.51 ../dist/public/assets/purify.es-DfngIMfA.js                          22.26 kB │ gzip:   8.72 kB
+2025-Oct-20 18:09:55.153804
+#14 37.51 ../dist/public/assets/index.es-CClIDn9i.js                          150.53 kB │ gzip:  51.48 kB
+2025-Oct-20 18:09:55.153804
+#14 37.51 ../dist/public/assets/html2canvas.esm-CBrSDip1.js                   201.42 kB │ gzip:  48.03 kB
+2025-Oct-20 18:09:55.153804
+#14 37.51 ../dist/public/assets/index-DisMaucV.js                           1,051.62 kB │ gzip: 319.77 kB
+2025-Oct-20 18:09:55.153804
+#14 37.51
+2025-Oct-20 18:09:55.153804
+#14 37.51 (!) Some chunks are larger than 500 kB after minification. Consider:
+2025-Oct-20 18:09:55.153804
+#14 37.51 - Using dynamic import() to code-split the application
+2025-Oct-20 18:09:55.153804
+#14 37.51 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-Oct-20 18:09:55.153804
+#14 37.51 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-Oct-20 18:09:55.153804
+#14 37.51 ✓ built in 34.08s
+2025-Oct-20 18:09:55.153804
+#14 37.81
+2025-Oct-20 18:09:55.153804
+#14 37.81   dist/index.js  51.2kb
+2025-Oct-20 18:09:55.153804
+#14 37.81
+2025-Oct-20 18:09:55.153804
+#14 37.81 ⚡ Done in 66ms
+2025-Oct-20 18:09:55.153804
+#14 DONE 37.9s
+2025-Oct-20 18:09:55.153804
+2025-Oct-20 18:09:55.153804
+#15 [stage-1 6/7] COPY --from=builder /app/dist ./dist
+2025-Oct-20 18:09:55.153804
+#15 CACHED
+2025-Oct-20 18:09:55.153804
+2025-Oct-20 18:09:55.153804
+#16 [stage-1 7/7] COPY --from=builder /app/client/dist ./client/dist
+2025-Oct-20 18:09:55.153804
+#16 ERROR: failed to calculate checksum of ref c4c4c558-7a08-4326-aff6-c77e6697e920::3k39fbhzsbgbh8vaf68sb9uys: "/app/client/dist": not found
+2025-Oct-20 18:09:55.153804
+------
+2025-Oct-20 18:09:55.153804
+> [stage-1 7/7] COPY --from=builder /app/client/dist ./client/dist:
+2025-Oct-20 18:09:55.153804
+------
+2025-Oct-20 18:09:55.153804
+Dockerfile:70
+2025-Oct-20 18:09:55.153804
+--------------------
+2025-Oct-20 18:09:55.153804
+68 |     # Copy built application from builder
+2025-Oct-20 18:09:55.153804
+69 |     COPY --from=builder /app/dist ./dist
+2025-Oct-20 18:09:55.153804
+70 | >>> COPY --from=builder /app/client/dist ./client/dist
+2025-Oct-20 18:09:55.153804
+71 |
+2025-Oct-20 18:09:55.153804
+72 |     # Expose port (Coolify will map this)
+2025-Oct-20 18:09:55.153804
+--------------------
+2025-Oct-20 18:09:55.153804
+ERROR: failed to build: failed to solve: failed to compute cache key: failed to calculate checksum of ref c4c4c558-7a08-4326-aff6-c77e6697e920::3k39fbhzsbgbh8vaf68sb9uys: "/app/client/dist": not found
+2025-Oct-20 18:09:55.153804
+exit status 1
+2025-Oct-20 18:09:55.193927
+Deployment failed. Removing the new version of your application.
+2025-Oct-20 18:09:58.501514
+Gracefully shutting down build container: u40wcow80ckkks40wc08gg4k
