@@ -32,17 +32,22 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install runtime dependencies for canvas package
+# Install runtime and build dependencies for canvas package
 RUN apk add --no-cache \
     python3 \
     make \
     g++ \
     pkgconf \
     cairo \
+    cairo-dev \
     jpeg \
+    jpeg-dev \
     pango \
+    pango-dev \
     giflib \
-    pixman
+    giflib-dev \
+    pixman \
+    pixman-dev
 
 # Install production dependencies only
 COPY package*.json ./
