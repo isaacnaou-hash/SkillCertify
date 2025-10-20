@@ -1,0 +1,139 @@
+025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args 'binding.gyp',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-f',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args 'make',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-I',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '/app/node_modules/canvas/build/config.gypi',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-I',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '/usr/local/lib/node_modules/npm/node_modules/node-gyp/addon.gypi',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-I',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '/root/.cache/node-gyp/20.19.5/include/node/common.gypi',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dlibrary=shared_library',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dvisibility=default',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dnode_root_dir=/root/.cache/node-gyp/20.19.5',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dnode_gyp_dir=/usr/local/lib/node_modules/npm/node_modules/node-gyp',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dnode_lib_file=/root/.cache/node-gyp/20.19.5/<(target_arch)/node.lib',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dmodule_root_dir=/app/node_modules/canvas',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dnode_engine=v8',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '--depth=.',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '--no-parallel',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '--generator-output',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args 'build',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Goutput_dir=.'
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args ]
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error /bin/sh: pkg-config: not found
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp: Call to 'pkg-config pixman-1 --libs' returned exit status 127 while in binding.gyp. while trying to load binding.gyp
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! configure error
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! stack Error: `gyp` failed with exit code: 1
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! stack at ChildProcess.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/node-gyp/lib/configure.js:297:18)
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! stack at ChildProcess.emit (node:events:524:28)
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! stack at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! System Linux 6.8.0-71-generic
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! command "/usr/local/bin/node" "/usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js" "rebuild"
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! cwd /app/node_modules/canvas
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! node -v v20.19.5
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! node-gyp -v v10.1.0
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! not ok
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm notice
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm notice To update run: npm install -g npm@11.6.2
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm notice
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-20T17_42_30_353Z-debug-0.log
+2025-Oct-20 17:43:22.755973
+#10 ERROR: process "/bin/sh -c npm ci --omit=dev" did not complete successfully: exit code: 1
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#12 [builder 5/7] RUN npm ci
+2025-Oct-20 17:43:22.755973
+#12 CANCELED
+2025-Oct-20 17:43:22.755973
+------
+2025-Oct-20 17:43:22.755973
+> [stage-1 5/7] RUN npm ci --omit=dev:
+2025-Oct-20 17:43:22.755973
+49.65 npm error gyp ERR! cwd /app/node_modules/canvas
+2025-Oct-20 17:43:22.755973
+49.65 npm error gyp ERR! node -v v20.19.5
+2025-Oct-20 17:43:22.755973
+49.65 npm error gyp ERR! node-gyp -v v10.1.0
+2025-Oct-20 17:43:22.755973
+49.65 npm error gyp ERR! not ok
+2025-Oct-20 17:43:22.755973
+49.66 npm notice
+2025-Oct-20 17:43:22.755973
+49.66 npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-Oct-20 17:43:22.755973
+49.66 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-Oct-20 17:43:22.755973
+49.66 npm notice To update run: npm install -g npm@11.6.2
+2025-Oct-20 17:43:22.755973
+49.66 npm notice
+2025-Oct-20 17:43:22.755973
+49.66 npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-20T17_42_30_353Z-debug-0.log
+2025-Oct-20 17:43:22.755973
+------
+2025-Oct-20 17:43:22.755973
+Dockerfile:59
+2025-Oct-20 17:43:22.755973
+--------------------
+2025-Oct-20 17:43:22.755973
+57 |     # Install production dependencies only
+2025-Oct-20 17:43:22.755973
+58 |     COPY package*.json ./
+2025-Oct-20 17:43:22.755973
+59 | >>> RUN npm ci --omit=dev
+2025-Oct-20 17:43:22.755973
+60 |
+2025-Oct-20 17:43:22.755973
+61 |     # Copy built application from builder
+2025-Oct-20 17:43:22.755973
+--------------------
+2025-Oct-20 17:43:22.755973
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm ci --omit=dev" did not complete successfully: exit code: 1
+2025-Oct-20 17:43:22.755973
+exit status 1
+2025-Oct-20 17:43:22.775520
+Deployment failed. Removing the new version of your application.
+2025-Oct-20 17:43:23.610473
+Gracefully shutting down build container: tgs44wc4c4sc8ksc8kwsoc8w
