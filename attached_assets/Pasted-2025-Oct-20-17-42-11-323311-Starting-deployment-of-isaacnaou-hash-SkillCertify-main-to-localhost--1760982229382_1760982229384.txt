@@ -1,0 +1,713 @@
+2025-Oct-20 17:42:11.323311
+Starting deployment of isaacnaou-hash/SkillCertify:main to localhost.
+2025-Oct-20 17:42:11.712253
+Preparing container with helper image: ghcr.io/coollabsio/coolify-helper:1.0.11.
+2025-Oct-20 17:42:14.213553
+----------------------------------------
+2025-Oct-20 17:42:14.226217
+Importing isaacnaou-hash/SkillCertify:main (commit sha HEAD) to /artifacts/tgs44wc4c4sc8ksc8kwsoc8w.
+2025-Oct-20 17:42:16.259979
+Image not found (vogk8w0o0sskcwg488w8o084:ca943499fdd6a742eeba11090a7ce89cbc173c2c). Building new image.
+2025-Oct-20 17:42:18.899223
+----------------------------------------
+2025-Oct-20 17:42:18.911688
+Building docker image started.
+2025-Oct-20 17:42:18.923711
+To check the current progress, click on Show Debug Logs.
+2025-Oct-20 17:43:22.738730
+Oops something is not okay, are you okay? 😢
+2025-Oct-20 17:43:22.755973
+#0 building with "default" instance using docker driver
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#1 [internal] load build definition from Dockerfile
+2025-Oct-20 17:43:22.755973
+#1 transferring dockerfile: 1.93kB done
+2025-Oct-20 17:43:22.755973
+#1 DONE 0.0s
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+2025-Oct-20 17:43:22.755973
+#2 DONE 0.7s
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#3 [internal] load .dockerignore
+2025-Oct-20 17:43:22.755973
+#3 transferring context: 174B done
+2025-Oct-20 17:43:22.755973
+#3 DONE 0.0s
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#4 [builder 1/7] FROM docker.io/library/node:20-alpine@sha256:1ab6fc5a31d515dc7b6b25f6acfda2001821f2c2400252b6cb61044bd9f9ad48
+2025-Oct-20 17:43:22.755973
+#4 DONE 0.0s
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#5 [builder 2/7] WORKDIR /app
+2025-Oct-20 17:43:22.755973
+#5 CACHED
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#6 [internal] load build context
+2025-Oct-20 17:43:22.755973
+#6 transferring context: 3.35MB 0.2s done
+2025-Oct-20 17:43:22.755973
+#6 DONE 0.2s
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#7 [stage-1 3/7] RUN apk add --no-cache     python3     make     g++     cairo     jpeg     pango     giflib     pixman
+2025-Oct-20 17:43:22.755973
+#7 0.177 fetch https://dl-cdn.alpinelinux.org/alpine/v3.22/main/x86_64/APKINDEX.tar.gz
+2025-Oct-20 17:43:22.755973
+#7 0.446 fetch https://dl-cdn.alpinelinux.org/alpine/v3.22/community/x86_64/APKINDEX.tar.gz
+2025-Oct-20 17:43:22.755973
+#7 1.373 (1/59) Installing libxau (1.0.12-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.394 (2/59) Installing libmd (1.1.0-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.404 (3/59) Installing libbsd (0.12.2-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.416 (4/59) Installing libxdmcp (1.1.5-r1)
+2025-Oct-20 17:43:22.755973
+#7 1.428 (5/59) Installing libxcb (1.17.0-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.466 (6/59) Installing libx11 (1.8.11-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.604 (7/59) Installing libxext (1.3.6-r2)
+2025-Oct-20 17:43:22.755973
+#7 1.615 (8/59) Installing libxrender (0.9.12-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.628 (9/59) Installing libexpat (2.7.3-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.641 (10/59) Installing brotli-libs (1.1.0-r2)
+2025-Oct-20 17:43:22.755973
+#7 1.677 (11/59) Installing libbz2 (1.0.8-r6)
+2025-Oct-20 17:43:22.755973
+#7 1.691 (12/59) Installing libpng (1.6.47-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.716 (13/59) Installing freetype (2.13.3-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.746 (14/59) Installing fontconfig (2.15.0-r3)
+2025-Oct-20 17:43:22.755973
+#7 1.804 (15/59) Installing pixman (0.46.4-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.827 (16/59) Installing cairo (1.18.4-r0)
+2025-Oct-20 17:43:22.755973
+#7 1.865 (17/59) Installing libstdc++-dev (14.2.0-r6)
+2025-Oct-20 17:43:22.755973
+#7 2.392 (18/59) Installing jansson (2.14.1-r0)
+2025-Oct-20 17:43:22.755973
+#7 2.401 (19/59) Installing zstd-libs (1.5.7-r0)
+2025-Oct-20 17:43:22.755973
+#7 2.428 (20/59) Installing binutils (2.44-r3)
+2025-Oct-20 17:43:22.755973
+#7 2.701 (21/59) Installing libgomp (14.2.0-r6)
+2025-Oct-20 17:43:22.755973
+#7 2.729 (22/59) Installing libatomic (14.2.0-r6)
+2025-Oct-20 17:43:22.755973
+#7 2.744 (23/59) Installing gmp (6.3.0-r3)
+2025-Oct-20 17:43:22.755973
+#7 2.768 (24/59) Installing isl26 (0.26-r1)
+2025-Oct-20 17:43:22.755973
+#7 2.845 (25/59) Installing mpfr4 (4.2.1_p1-r0)
+2025-Oct-20 17:43:22.755973
+#7 2.889 (26/59) Installing mpc1 (1.3.1-r1)
+2025-Oct-20 17:43:22.755973
+#7 2.916 (27/59) Installing gcc (14.2.0-r6)
+2025-Oct-20 17:43:22.755973
+#7 5.675 (28/59) Installing musl-dev (1.2.5-r10)
+2025-Oct-20 17:43:22.755973
+#7 5.893 (29/59) Installing g++ (14.2.0-r6)
+2025-Oct-20 17:43:22.755973
+#7 6.737 (30/59) Installing giflib (5.2.2-r1)
+2025-Oct-20 17:43:22.755973
+#7 6.754 (31/59) Installing libjpeg-turbo (3.1.0-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.057 (32/59) Installing libturbojpeg (3.1.0-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.082 (33/59) Installing libjpeg-turbo-utils (3.1.0-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.123 (34/59) Installing jpeg (9f-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.123 (35/59) Installing make (4.4.1-r3)
+2025-Oct-20 17:43:22.755973
+#7 7.148 (36/59) Installing libxft (2.3.8-r3)
+2025-Oct-20 17:43:22.755973
+#7 7.159 (37/59) Installing fribidi (1.0.16-r1)
+2025-Oct-20 17:43:22.755973
+#7 7.189 (38/59) Installing libffi (3.4.8-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.198 (39/59) Installing libintl (0.24.1-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.208 (40/59) Installing libeconf (0.6.3-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.220 (41/59) Installing libblkid (2.41-r9)
+2025-Oct-20 17:43:22.755973
+#7 7.243 (42/59) Installing libmount (2.41-r9)
+2025-Oct-20 17:43:22.755973
+#7 7.265 (43/59) Installing pcre2 (10.46-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.287 (44/59) Installing glib (2.84.4-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.426 (45/59) Installing graphite2 (1.3.14-r6)
+2025-Oct-20 17:43:22.755973
+#7 7.439 (46/59) Installing harfbuzz (11.2.1-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.505 (47/59) Installing pango (1.56.3-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.550 (48/59) Installing gdbm (1.24-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.559 (49/59) Installing xz-libs (5.8.1-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.573 (50/59) Installing mpdecimal (4.0.1-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.589 (51/59) Installing ncurses-terminfo-base (6.5_p20250503-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.616 (52/59) Installing libncursesw (6.5_p20250503-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.637 (53/59) Installing libpanelw (6.5_p20250503-r0)
+2025-Oct-20 17:43:22.755973
+#7 7.645 (54/59) Installing readline (8.2.13-r1)
+2025-Oct-20 17:43:22.755973
+#7 7.663 (55/59) Installing sqlite-libs (3.49.2-r1)
+2025-Oct-20 17:43:22.755973
+#7 7.711 (56/59) Installing python3 (3.12.12-r0)
+2025-Oct-20 17:43:22.755973
+#7 ...
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#8 [builder 3/7] RUN apk add --no-cache     python3     make     g++     cairo-dev     jpeg-dev     pango-dev     giflib-dev     pixman-dev
+2025-Oct-20 17:43:22.755973
+#8 0.232 fetch https://dl-cdn.alpinelinux.org/alpine/v3.22/main/x86_64/APKINDEX.tar.gz
+2025-Oct-20 17:43:22.755973
+#8 0.451 fetch https://dl-cdn.alpinelinux.org/alpine/v3.22/community/x86_64/APKINDEX.tar.gz
+2025-Oct-20 17:43:22.755973
+#8 1.295 (1/139) Installing cairo-tools (1.18.4-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.323 (2/139) Installing libexpat (2.7.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.368 (3/139) Installing brotli-libs (1.1.0-r2)
+2025-Oct-20 17:43:22.755973
+#8 1.408 (4/139) Installing libbz2 (1.0.8-r6)
+2025-Oct-20 17:43:22.755973
+#8 1.430 (5/139) Installing libpng (1.6.47-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.456 (6/139) Installing freetype (2.13.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.498 (7/139) Installing fontconfig (2.15.0-r3)
+2025-Oct-20 17:43:22.755973
+#8 1.570 (8/139) Installing expat (2.7.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.592 (9/139) Installing pkgconf (2.4.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.616 (10/139) Installing expat-dev (2.7.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.638 (11/139) Installing bzip2-dev (1.0.8-r6)
+2025-Oct-20 17:43:22.755973
+#8 1.659 (12/139) Installing brotli (1.1.0-r2)
+2025-Oct-20 17:43:22.755973
+#8 1.678 (13/139) Installing brotli-dev (1.1.0-r2)
+2025-Oct-20 17:43:22.755973
+#8 1.699 (14/139) Installing zlib-dev (1.3.1-r2)
+2025-Oct-20 17:43:22.755973
+#8 1.724 (15/139) Installing libpng-dev (1.6.47-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.753 (16/139) Installing freetype-dev (2.13.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.808 (17/139) Installing fontconfig-dev (2.15.0-r3)
+2025-Oct-20 17:43:22.755973
+#8 1.830 (18/139) Installing libxau (1.0.12-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.854 (19/139) Installing xorgproto (2024.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.964 (20/139) Installing libxau-dev (1.0.12-r0)
+2025-Oct-20 17:43:22.755973
+#8 1.983 (21/139) Installing libmd (1.1.0-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.001 (22/139) Installing libbsd (0.12.2-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.022 (23/139) Installing libxdmcp (1.1.5-r1)
+2025-Oct-20 17:43:22.755973
+#8 2.043 (24/139) Installing libxcb (1.17.0-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.106 (25/139) Installing libx11 (1.8.11-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.233 (26/139) Installing libxext (1.3.6-r2)
+2025-Oct-20 17:43:22.755973
+#8 2.255 (27/139) Installing libffi (3.4.8-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.272 (28/139) Installing gdbm (1.24-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.295 (29/139) Installing xz-libs (5.8.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.320 (30/139) Installing mpdecimal (4.0.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.345 (31/139) Installing ncurses-terminfo-base (6.5_p20250503-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.376 (32/139) Installing libncursesw (6.5_p20250503-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.409 (33/139) Installing libpanelw (6.5_p20250503-r0)
+2025-Oct-20 17:43:22.755973
+#8 2.429 (34/139) Installing readline (8.2.13-r1)
+2025-Oct-20 17:43:22.755973
+#8 2.466 (35/139) Installing sqlite-libs (3.49.2-r1)
+2025-Oct-20 17:43:22.755973
+#8 2.584 (36/139) Installing python3 (3.12.12-r0)
+2025-Oct-20 17:43:22.755973
+#8 3.168 (37/139) Installing python3-pycache-pyc0 (3.12.12-r0)
+2025-Oct-20 17:43:22.755973
+#8 3.640 (38/139) Installing pyc (3.12.12-r0)
+2025-Oct-20 17:43:22.755973
+#8 3.640 (39/139) Installing xcb-proto-pyc (1.17.0-r0)
+2025-Oct-20 17:43:22.755973
+#8 3.704 (40/139) Installing python3-pyc (3.12.12-r0)
+2025-Oct-20 17:43:22.755973
+#8 3.705 (41/139) Installing xcb-proto (1.17.0-r0)
+2025-Oct-20 17:43:22.755973
+#8 3.785 (42/139) Installing libxdmcp-dev (1.1.5-r1)
+2025-Oct-20 17:43:22.755973
+#8 3.849 (43/139) Installing libxcb-dev (1.17.0-r0)
+2025-Oct-20 17:43:22.755973
+#8 3.952 (44/139) Installing xtrans (1.5.2-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.016 (45/139) Installing libx11-dev (1.8.11-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.103 (46/139) Installing libxext-dev (1.3.6-r2)
+2025-Oct-20 17:43:22.755973
+#8 4.168 (47/139) Installing libxrender (0.9.12-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.217 (48/139) Installing libxrender-dev (0.9.12-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.255 (49/139) Installing pixman (0.46.4-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.309 (50/139) Installing pixman-dev (0.46.4-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.333 (51/139) Installing util-macros (1.20.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.390 (52/139) Installing xcb-util (0.4.1-r3)
+2025-Oct-20 17:43:22.755973
+#8 4.415 (53/139) Installing xcb-util-dev (0.4.1-r3)
+2025-Oct-20 17:43:22.755973
+#8 4.437 (54/139) Installing cairo (1.18.4-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.497 (55/139) Installing libintl (0.24.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.532 (56/139) Installing libeconf (0.6.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.562 (57/139) Installing libblkid (2.41-r9)
+2025-Oct-20 17:43:22.755973
+#8 4.600 (58/139) Installing libmount (2.41-r9)
+2025-Oct-20 17:43:22.755973
+#8 4.640 (59/139) Installing pcre2 (10.46-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.692 (60/139) Installing glib (2.84.4-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.898 (61/139) Installing cairo-gobject (1.18.4-r0)
+2025-Oct-20 17:43:22.755973
+#8 4.970 (62/139) Installing libxml2 (2.13.9-r0)
+2025-Oct-20 17:43:22.755973
+#8 5.102 (63/139) Installing libxml2-utils (2.13.9-r0)
+2025-Oct-20 17:43:22.755973
+#8 5.189 (64/139) Installing docbook-xml (4.5-r10)
+2025-Oct-20 17:43:22.755973
+#8 5.345 Executing docbook-xml-4.5-r10.post-install
+2025-Oct-20 17:43:22.755973
+#8 5.383 (65/139) Installing libxslt (1.1.43-r3)
+2025-Oct-20 17:43:22.755973
+#8 5.497 (66/139) Installing docbook-xsl-ns (1.79.2-r11)
+2025-Oct-20 17:43:22.755973
+#8 6.083 Executing docbook-xsl-ns-1.79.2-r11.post-install
+2025-Oct-20 17:43:22.755973
+#8 6.170 (67/139) Installing docbook-xsl-nons (1.79.2-r11)
+2025-Oct-20 17:43:22.755973
+#8 6.769 Executing docbook-xsl-nons-1.79.2-r11.post-install
+2025-Oct-20 17:43:22.755973
+#8 6.847 (68/139) Installing docbook-xsl (1.79.2-r11)
+2025-Oct-20 17:43:22.755973
+#8 6.867 (69/139) Installing xz (5.8.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 6.899 (70/139) Installing gettext-asprintf (0.24.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 6.918 (71/139) Installing libunistring (1.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 6.969 (72/139) Installing gettext-libs (0.24.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.022 (73/139) Installing gettext-envsubst (0.24.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.041 (74/139) Installing libgomp (14.2.0-r6)
+2025-Oct-20 17:43:22.755973
+#8 7.071 (75/139) Installing gettext (0.24.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.140 (76/139) Installing gettext-dev (0.24.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.213 (77/139) Installing py3-parsing (3.2.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.244 (78/139) Installing py3-parsing-pyc (3.2.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.285 (79/139) Installing py3-packaging (25.0-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.387 (80/139) Installing py3-packaging-pyc (25.0-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.419 (81/139) Installing linux-headers (6.14.2-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.760 (82/139) Installing libffi-dev (3.4.8-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.810 (83/139) Installing bsd-compat-headers (0.7.2-r6)
+2025-Oct-20 17:43:22.755973
+#8 7.850 (84/139) Installing libformw (6.5_p20250503-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.887 (85/139) Installing libmenuw (6.5_p20250503-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.915 (86/139) Installing libncurses++ (6.5_p20250503-r0)
+2025-Oct-20 17:43:22.755973
+#8 7.975 (87/139) Installing ncurses-dev (6.5_p20250503-r0)
+2025-Oct-20 17:43:22.755973
+#8 8.044 (88/139) Installing libedit (20250104.3.1-r1)
+2025-Oct-20 17:43:22.755973
+#8 8.069 (89/139) Installing libedit-dev (20250104.3.1-r1)
+2025-Oct-20 17:43:22.755973
+#8 8.091 (90/139) Installing libpcre2-16 (10.46-r0)
+2025-Oct-20 17:43:22.755973
+#8 8.132 (91/139) Installing libpcre2-32 (10.46-r0)
+2025-Oct-20 17:43:22.755973
+#8 8.175 (92/139) Installing pcre2-dev (10.46-r0)
+2025-Oct-20 17:43:22.755973
+#8 8.199 (93/139) Installing libuuid (2.41-r9)
+2025-Oct-20 17:43:22.755973
+#8 8.215 (94/139) Installing libfdisk (2.41-r9)
+2025-Oct-20 17:43:22.755973
+#8 8.241 (95/139) Installing liblastlog2 (2.41-r9)
+2025-Oct-20 17:43:22.755973
+#8 8.285 (96/139) Installing libsmartcols (2.41-r9)
+2025-Oct-20 17:43:22.755973
+#8 8.328 (97/139) Installing sqlite (3.49.2-r1)
+2025-Oct-20 17:43:22.755973
+#8 8.462 (98/139) Installing sqlite-dev (3.49.2-r1)
+2025-Oct-20 17:43:22.755973
+#8 8.502 (99/139) Installing util-linux-dev (2.41-r9)
+2025-Oct-20 17:43:22.755973
+#8 8.528 (100/139) Installing glib-dev (2.84.4-r0)
+2025-Oct-20 17:43:22.755973
+#8 8.799 (101/139) Installing cairo-dev (1.18.4-r0)
+2025-Oct-20 17:43:22.755973
+#8 8.829 (102/139) Installing libstdc++-dev (14.2.0-r6)
+2025-Oct-20 17:43:22.755973
+#8 ...
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#7 [stage-1 3/7] RUN apk add --no-cache     python3     make     g++     cairo     jpeg     pango     giflib     pixman
+2025-Oct-20 17:43:22.755973
+#7 8.229 (57/59) Installing python3-pycache-pyc0 (3.12.12-r0)
+2025-Oct-20 17:43:22.755973
+#7 8.603 (58/59) Installing pyc (3.12.12-r0)
+2025-Oct-20 17:43:22.755973
+#7 8.603 (59/59) Installing python3-pyc (3.12.12-r0)
+2025-Oct-20 17:43:22.755973
+#7 8.607 Executing busybox-1.37.0-r19.trigger
+2025-Oct-20 17:43:22.755973
+#7 8.635 Executing glib-2.84.4-r0.trigger
+2025-Oct-20 17:43:22.755973
+#7 8.651 OK: 288 MiB in 77 packages
+2025-Oct-20 17:43:22.755973
+#7 DONE 9.1s
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#9 [stage-1 4/7] COPY package*.json ./
+2025-Oct-20 17:43:22.755973
+#9 DONE 0.0s
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#10 [stage-1 5/7] RUN npm ci --omit=dev
+2025-Oct-20 17:43:22.755973
+#10 ...
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#8 [builder 3/7] RUN apk add --no-cache     python3     make     g++     cairo-dev     jpeg-dev     pango-dev     giflib-dev     pixman-dev
+2025-Oct-20 17:43:22.755973
+#8 9.303 (103/139) Installing jansson (2.14.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 9.327 (104/139) Installing zstd-libs (1.5.7-r0)
+2025-Oct-20 17:43:22.755973
+#8 9.368 (105/139) Installing binutils (2.44-r3)
+2025-Oct-20 17:43:22.755973
+#8 9.600 (106/139) Installing libatomic (14.2.0-r6)
+2025-Oct-20 17:43:22.755973
+#8 9.619 (107/139) Installing gmp (6.3.0-r3)
+2025-Oct-20 17:43:22.755973
+#8 9.650 (108/139) Installing isl26 (0.26-r1)
+2025-Oct-20 17:43:22.755973
+#8 9.710 (109/139) Installing mpfr4 (4.2.1_p1-r0)
+2025-Oct-20 17:43:22.755973
+#8 9.742 (110/139) Installing mpc1 (1.3.1-r1)
+2025-Oct-20 17:43:22.755973
+#8 9.765 (111/139) Installing gcc (14.2.0-r6)
+2025-Oct-20 17:43:22.755973
+#8 12.74 (112/139) Installing musl-dev (1.2.5-r10)
+2025-Oct-20 17:43:22.755973
+#8 12.95 (113/139) Installing g++ (14.2.0-r6)
+2025-Oct-20 17:43:22.755973
+#8 13.73 (114/139) Installing giflib (5.2.2-r1)
+2025-Oct-20 17:43:22.755973
+#8 13.75 (115/139) Installing giflib-dev (5.2.2-r1)
+2025-Oct-20 17:43:22.755973
+#8 13.77 (116/139) Installing libjpeg-turbo (3.1.0-r0)
+2025-Oct-20 17:43:22.755973
+#8 13.81 (117/139) Installing libturbojpeg (3.1.0-r0)
+2025-Oct-20 17:43:22.755973
+#8 13.85 (118/139) Installing libjpeg-turbo-dev (3.1.0-r0)
+2025-Oct-20 17:43:22.755973
+#8 13.87 (119/139) Installing jpeg-dev (9f-r0)
+2025-Oct-20 17:43:22.755973
+#8 13.87 (120/139) Installing make (4.4.1-r3)
+2025-Oct-20 17:43:22.755973
+#8 13.90 (121/139) Installing libxft (2.3.8-r3)
+2025-Oct-20 17:43:22.755973
+#8 13.92 (122/139) Installing graphite2 (1.3.14-r6)
+2025-Oct-20 17:43:22.755973
+#8 13.95 (123/139) Installing harfbuzz (11.2.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 14.01 (124/139) Installing fribidi (1.0.16-r1)
+2025-Oct-20 17:43:22.755973
+#8 14.03 (125/139) Installing pango (1.56.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 14.07 (126/139) Installing pango-tools (1.56.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 14.09 (127/139) Installing fribidi-dev (1.0.16-r1)
+2025-Oct-20 17:43:22.755973
+#8 14.12 (128/139) Installing harfbuzz-cairo (11.2.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 14.15 (129/139) Installing harfbuzz-gobject (11.2.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 14.17 (130/139) Installing icu-data-en (76.1-r1)
+2025-Oct-20 17:43:22.755973
+#8 14.25 Executing icu-data-en-76.1-r1.post-install
+2025-Oct-20 17:43:22.755973
+#8 14.26 *
+2025-Oct-20 17:43:22.755973
+#8 14.26 * If you need ICU with non-English locales and legacy charset support, install
+2025-Oct-20 17:43:22.755973
+#8 14.26 * package icu-data-full.
+2025-Oct-20 17:43:22.755973
+#8 14.26 *
+2025-Oct-20 17:43:22.755973
+#8 14.26 (131/139) Installing icu-libs (76.1-r1)
+2025-Oct-20 17:43:22.755973
+#8 14.38 (132/139) Installing harfbuzz-icu (11.2.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 14.40 (133/139) Installing harfbuzz-subset (11.2.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 14.45 (134/139) Installing graphite2-dev (1.3.14-r6)
+2025-Oct-20 17:43:22.755973
+#8 14.47 (135/139) Installing icu (76.1-r1)
+2025-Oct-20 17:43:22.755973
+#8 14.52 (136/139) Installing icu-dev (76.1-r1)
+2025-Oct-20 17:43:22.755973
+#8 14.69 (137/139) Installing harfbuzz-dev (11.2.1-r0)
+2025-Oct-20 17:43:22.755973
+#8 14.74 (138/139) Installing libxft-dev (2.3.8-r3)
+2025-Oct-20 17:43:22.755973
+#8 14.77 (139/139) Installing pango-dev (1.56.3-r0)
+2025-Oct-20 17:43:22.755973
+#8 14.84 Executing busybox-1.37.0-r19.trigger
+2025-Oct-20 17:43:22.755973
+#8 14.86 Executing glib-2.84.4-r0.trigger
+2025-Oct-20 17:43:22.755973
+#8 14.87 No schema files found: doing nothing.
+2025-Oct-20 17:43:22.755973
+#8 14.89 OK: 377 MiB in 157 packages
+2025-Oct-20 17:43:22.755973
+#8 DONE 15.4s
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#10 [stage-1 5/7] RUN npm ci --omit=dev
+2025-Oct-20 17:43:22.755973
+#10 ...
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#11 [builder 4/7] COPY package*.json ./
+2025-Oct-20 17:43:22.755973
+#11 DONE 0.1s
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#12 [builder 5/7] RUN npm ci
+2025-Oct-20 17:43:22.755973
+#12 19.17 npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+2025-Oct-20 17:43:22.755973
+#12 19.36 npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+2025-Oct-20 17:43:22.755973
+#12 ...
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#10 [stage-1 5/7] RUN npm ci --omit=dev
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error code 1
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error path /app/node_modules/canvas
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error command failed
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error command sh -c prebuild-install -r napi || node-gyp rebuild
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error prebuild-install warn install No prebuilt binaries found (target=7 runtime=napi arch=x64 libc=musl platform=linux)
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info it worked if it ends with ok
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info using node-gyp@10.1.0
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info using node@20.19.5 | linux | x64
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info find Python using Python version 3.12.12 found at "/usr/bin/python3"
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp http GET https://unofficial-builds.nodejs.org/download/release/v20.19.5/node-v20.19.5-headers.tar.gz
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp http 200 https://unofficial-builds.nodejs.org/download/release/v20.19.5/node-v20.19.5-headers.tar.gz
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp http GET https://unofficial-builds.nodejs.org/download/release/v20.19.5/SHASUMS256.txt
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp http 200 https://unofficial-builds.nodejs.org/download/release/v20.19.5/SHASUMS256.txt
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn /usr/bin/python3
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args [
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '/usr/local/lib/node_modules/npm/node_modules/node-gyp/gyp/gyp_main.py',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args 'binding.gyp',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-f',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args 'make',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-I',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '/app/node_modules/canvas/build/config.gypi',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-I',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '/usr/local/lib/node_modules/npm/node_modules/node-gyp/addon.gypi',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-I',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '/root/.cache/node-gyp/20.19.5/include/node/common.gypi',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dlibrary=shared_library',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dvisibility=default',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dnode_root_dir=/root/.cache/node-gyp/20.19.5',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dnode_gyp_dir=/usr/local/lib/node_modules/npm/node_modules/node-gyp',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dnode_lib_file=/root/.cache/node-gyp/20.19.5/<(target_arch)/node.lib',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dmodule_root_dir=/app/node_modules/canvas',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Dnode_engine=v8',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '--depth=.',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '--no-parallel',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '--generator-output',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args 'build',
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args '-Goutput_dir=.'
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp info spawn args ]
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error /bin/sh: pkg-config: not found
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp: Call to 'pkg-config pixman-1 --libs' returned exit status 127 while in binding.gyp. while trying to load binding.gyp
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! configure error
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! stack Error: `gyp` failed with exit code: 1
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! stack at ChildProcess.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/node-gyp/lib/configure.js:297:18)
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! stack at ChildProcess.emit (node:events:524:28)
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! stack at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! System Linux 6.8.0-71-generic
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! command "/usr/local/bin/node" "/usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js" "rebuild"
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! cwd /app/node_modules/canvas
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! node -v v20.19.5
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! node-gyp -v v10.1.0
+2025-Oct-20 17:43:22.755973
+#10 49.65 npm error gyp ERR! not ok
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm notice
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm notice To update run: npm install -g npm@11.6.2
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm notice
+2025-Oct-20 17:43:22.755973
+#10 49.66 npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-20T17_42_30_353Z-debug-0.log
+2025-Oct-20 17:43:22.755973
+#10 ERROR: process "/bin/sh -c npm ci --omit=dev" did not complete successfully: exit code: 1
+2025-Oct-20 17:43:22.755973
+2025-Oct-20 17:43:22.755973
+#12 [builder 5/7] RUN npm ci
+2025-Oct-20 17:43:22.755973
+#12 CANCELED
+2025-Oct-20 17:43:22.755973
+------
+2025-Oct-20 17:43:22.755973
+> [stage-1 5/7] RUN npm ci --omit=dev:
+2025-Oct-20 17:43:22.755973
+49.65 npm error gyp ERR! cwd /app/node_modules/canvas
+2025-Oct-20 17:43:22.755973
+49.65 npm error gyp ERR! node -v v20.19.5
+2025-Oct-20 17:43:22.755973
+49.65 npm error gyp ERR! node-gyp -v v10.1.0
+2025-Oct-20 17:43:22.755973
+49.65 npm error gyp ERR! not ok
+2025-Oct-20 17:43:22.755973
+49.66 npm notice
+2025-Oct-20 17:43:22.755973
+49.66 npm notice New major version of npm available! 10.8.2 -> 11.6.2
+2025-Oct-20 17:43:22.755973
+49.66 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+2025-Oct-20 17:43:22.755973
+49.66 npm notice To update run: npm install -g npm@11.6.2
+2025-Oct-20 17:43:22.755973
+49.66 npm notice
+2025-Oct-20 17:43:22.755973
+49.66 npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-20T17_42_30_353Z-debug-0.log
+2025-Oct-20 17:43:22.755973
+------
+2025-Oct-20 17:43:22.755973
+Dockerfile:59
+2025-Oct-20 17:43:22.755973
+--------------------
+2025-Oct-20 17:43:22.755973
+57 |     # Install production dependencies only
+2025-Oct-20 17:43:22.755973
+58 |     COPY package*.json ./
+2025-Oct-20 17:43:22.755973
+59 | >>> RUN npm ci --omit=dev
+2025-Oct-20 17:43:22.755973
+60 |
+2025-Oct-20 17:43:22.755973
+61 |     # Copy built application from builder
+2025-Oct-20 17:43:22.755973
+--------------------
+2025-Oct-20 17:43:22.755973
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm ci --omit=dev" did not complete successfully: exit code: 1
+2025-Oct-20 17:43:22.755973
+exit status 1
+2025-Oct-20 17:43:22.775520
+Deployment failed. Removing the new version of your application.
+2025-Oct-20 17:43:23.610473
+Gracefully shutting down build container: tgs44wc4c4sc8ksc8kwsoc8w
