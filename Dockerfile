@@ -3,7 +3,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install build-time dependencies for node-canvas (if used)
+# Install build-time dependencies for node-canvas
 RUN apk add --no-cache \
     python3 \
     make \
@@ -15,14 +15,14 @@ RUN apk add --no-cache \
     giflib-dev \
     pixman-dev
 
-# Copy package files and install dependencies
+# Copy dependency manifests and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy source code
+# Copy the full project
 COPY . .
 
-# Build frontend + bundle backend (use your package.json build script)
+# Build frontend + backend bundle
 RUN npm run build
 
 # ---------- Production Stage ----------
@@ -30,7 +30,7 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install runtime libs for canvas
+# Install runtime dependencies for node-canvas
 RUN apk add --no-cache \
     cairo \
     jpeg \
@@ -38,20 +38,17 @@ RUN apk add --no-cache \
     giflib \
     pixman
 
-# Copy package files and install production deps
-COPY package*.json ./
-RUN npm install --omit=dev
-
-# Copy the built files from builder
+# Copy only the necessary files from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/server ./server
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
 
-# Environment
+# Set environment variables
 ENV NODE_ENV=production
 ENV PORT=5000
 
 EXPOSE 5000
 
-# Start the compiled server entry (esbuild output to dist/server/index.js)
+# Start your backend
 CMD ["node", "dist/server/index.js"]
+
