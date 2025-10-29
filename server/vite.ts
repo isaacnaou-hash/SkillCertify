@@ -68,7 +68,8 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  // POINT THIS TO dist (Vite's default output). Using import.meta.dirname caused issues inside Docker.
+  const distPath = path.resolve("dist");
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
@@ -83,3 +84,5 @@ export function serveStatic(app: Express) {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
+
+  
