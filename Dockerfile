@@ -1,9 +1,9 @@
-# Build stage
+# ---------- Build Stage ----------
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies for canvas package
+# Install build-time dependencies for node-canvas (if used)
 RUN apk add --no-cache \
     python3 \
     make \
@@ -15,53 +15,43 @@ RUN apk add --no-cache \
     giflib-dev \
     pixman-dev
 
-# Copy package files
+# Copy package files and install dependencies
 COPY package*.json ./
-
-# Install all dependencies (including devDependencies for build)
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
 
-# Build the application (builds Vite frontend and bundles backend)
+# Build frontend + bundle backend (use your package.json build script)
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+# ---------- Production Stage ----------
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install runtime and build dependencies for canvas package
+# Install runtime libs for canvas
 RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    pkgconf \
     cairo \
-    cairo-dev \
     jpeg \
-    jpeg-dev \
     pango \
-    pango-dev \
     giflib \
-    giflib-dev \
-    pixman \
-    pixman-dev
+    pixman
 
-# Install production dependencies only
+# Copy package files and install production deps
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
-# Copy built application from builder (includes backend and frontend in dist/public)
+# Copy the built files from builder
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/server ./server
+COPY --from=builder /app/package.json ./package.json
 
-# Expose port (Coolify will map this)
-EXPOSE 5000
-
-# Set NODE_ENV
+# Environment
 ENV NODE_ENV=production
 ENV PORT=5000
 
-# Start the application
-CMD ["node", "dist/index.js"]
+EXPOSE 5000
+
+# Start the compiled server entry (esbuild output to dist/server/index.js)
+CMD ["node", "dist/server/index.js"]
