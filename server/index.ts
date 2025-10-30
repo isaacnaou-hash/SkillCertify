@@ -1,19 +1,24 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import http from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
-// health route (very important for Coolify)
-app.get("/health", (_req, res) => {
-  res.status(200).send("OK");
+/* 
+  ✅ Health Check (MUST be first)
+  Coolify uses this to detect if the service is healthy.
+*/
+app.get("/health", (_req: Request, res: Response) => {
+  res.status(200).type("text/plain").send("OK");
 });
 
-// CRITICAL: Webhook must use raw body parser BEFORE global JSON parser
-app.use('/api/payments/webhook', (req, res, next) => {
-  if (req.method === 'POST') {
-    express.raw({ type: 'application/json' })(req, res, next);
+/*
+  ✅ Paystack Webhook (raw body before global JSON parsing)
+*/
+app.use("/api/payments/webhook", (req, res, next) => {
+  if (req.method === "POST") {
+    express.raw({ type: "application/json" })(req, res, next);
   } else {
     next();
   }
@@ -22,6 +27,9 @@ app.use('/api/payments/webhook', (req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+/*
+  ✅ Request logging (safe)
+*/
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -29,7 +37,6 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      // SECURITY: Log only method, path, status, duration - NO response bodies to prevent token leakage
       const logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       log(logLine);
     }
@@ -38,42 +45,39 @@ app.use((req, res, next) => {
   next();
 });
 
+/*
+  ✅ Main async block
+*/
 (async () => {
   try {
-    // create a real HTTP server and pass to setupVite (HMR needs it in dev)
     const server = http.createServer(app);
 
-    // registerRoutes should register endpoints on the Express `app`.
-    // It does NOT need to return a server — but if it does return one, we respect it.
-    // If your existing registerRoutes returns a server, prefer that; otherwise proceed.
-    const maybeServer = await registerRoutes(app);
-    // If registerRoutes returns an http.Server, use it; otherwise use the created server
-    const httpServer = (maybeServer as unknown as http.Server) || server;
+    // Register backend API routes
+    await registerRoutes(app);
 
+    // Global error handler
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
+      const status = err.status || 500;
       const message = err.message || "Internal Server Error";
-
-      res.status(status).json({ message });
-      // still log the error server-side
       console.error("Unhandled error:", err);
+      res.status(status).json({ message });
     });
 
-    // development vs production static serving
+    // Serve static files (frontend)
     if (app.get("env") === "development") {
-      await setupVite(app, httpServer);
+      await setupVite(app, server);
     } else {
       serveStatic(app);
     }
 
-    // ALWAYS serve the app on the port specified in the environment variable PORT
-    const port = parseInt(process.env.PORT || '5000', 10);
-    httpServer.listen({
-      port,
-      host: "0.0.0.0",
-      // reusePort: true, // optional; some environments don't support reusePort
-    }, () => {
-      log(`serving on port ${port}`);
+    /*
+      ✅ Start the server
+      Listen on port 5000 (or PORT from env)
+      Ensure it binds to 0.0.0.0 for Coolify
+    */
+    const port = parseInt(process.env.PORT || "5000", 10);
+    server.listen(port, "0.0.0.0", () => {
+      log(`✅ Server running on port ${port}`);
     });
 
   } catch (err) {
