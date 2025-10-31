@@ -7,6 +7,9 @@ import { storage } from "./storage";
 import { insertUserSchema, insertTestSessionSchema, insertTestAnswerSchema, insertPaymentSchema, loginSchema, insertUserSessionSchema, insertTempRegistrationSchema } from "@shared/schema";
 import { z } from "zod";
 
+// If you're running on Node <18, uncomment the following line and install node-fetch:
+// import fetch from 'node-fetch';
+
 // Secure session token storage (using database now)
 const sessionTokens = new Map<string, { sessionId: string; userId: string; createdAt: number }>();
 
@@ -50,7 +53,8 @@ function validateUserSessionAccess(userId: string, token: string): boolean {
 }
 
 // Validate user auth token using storage (24 hours)
-async function validateUserAuthToken(token: string): Promise<string | null> {
+async function validateUserAuthToken(token: string | undefined): Promise<string | null> {
+  if (!token) return null;
   try {
     const session = await storage.getUserSession(token);
     if (!session || session.type !== 'auth') {
@@ -91,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User logout
   app.post("/api/logout", async (req, res) => {
     try {
-      const authToken = req.headers['x-auth-token'] as string;
+      const authToken = req.headers['x-auth-token'] as string | undefined;
       if (!authToken) {
         return res.status(400).json({ message: "No auth token provided" });
       }
@@ -188,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:id", async (req, res) => {
     try {
       // SECURITY: Require authentication and ownership
-      const authToken = req.headers['x-auth-token'] as string;
+      const authToken = req.headers['x-auth-token'] as string | undefined;
       const authenticatedUserId = await validateUserAuthToken(authToken);
       
       if (!authenticatedUserId || authenticatedUserId !== req.params.id) {
@@ -241,7 +245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/test-sessions", async (req, res) => {
     try {
       // SECURITY: Require user authentication for session creation
-      const authToken = req.headers['x-auth-token'] as string;
+      const authToken = req.headers['x-auth-token'] as string | undefined;
       const authenticatedUserId = await validateUserAuthToken(authToken);
       
       if (!authenticatedUserId) {
@@ -280,7 +284,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate session access token
-      const sessionToken = req.headers['x-session-token'] as string;
+      const sessionToken = req.headers['x-session-token'] as string | undefined;
       if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
         return res.status(401).json({ message: "Invalid or missing session token" });
       }
@@ -309,7 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate session access token
-      const sessionToken = req.headers['x-session-token'] as string;
+      const sessionToken = req.headers['x-session-token'] as string | undefined;
       if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
         return res.status(401).json({ message: "Invalid or missing session token" });
       }
@@ -327,7 +331,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/test-sessions", async (req, res) => {
     try {
       // Validate user auth token
-      const authToken = req.headers['x-auth-token'] as string;
+      const authToken = req.headers['x-auth-token'] as string | undefined;
       const authenticatedUserId = await validateUserAuthToken(authToken);
       
       if (!authenticatedUserId || authenticatedUserId !== req.params.userId) {
@@ -346,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:userId/incomplete-sessions", async (req, res) => {
     try {
       // Validate user auth token
-      const authToken = req.headers['x-auth-token'] as string;
+      const authToken = req.headers['x-auth-token'] as string | undefined;
       const authenticatedUserId = await validateUserAuthToken(authToken);
       
       if (!authenticatedUserId || authenticatedUserId !== req.params.userId) {
@@ -372,7 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users/:userId/resume-session/:sessionId", async (req, res) => {
     try {
       // Validate user auth token
-      const authToken = req.headers['x-auth-token'] as string;
+      const authToken = req.headers['x-auth-token'] as string | undefined;
       const authenticatedUserId = await validateUserAuthToken(authToken);
       
       if (!authenticatedUserId || authenticatedUserId !== req.params.userId) {
@@ -443,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate session access token
-      const sessionToken = req.headers['x-session-token'] as string;
+      const sessionToken = req.headers['x-session-token'] as string | undefined;
       if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
         return res.status(401).json({ message: "Invalid or missing session token" });
       }
@@ -472,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate session access token
-      const sessionToken = req.headers['x-session-token'] as string;
+      const sessionToken = req.headers['x-session-token'] as string | undefined;
       if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
         return res.status(401).json({ message: "Invalid or missing session token" });
       }
@@ -540,6 +544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ success: false, message: "Payment system not configured" });
       }
 
+      // Use global fetch (Node 18+) or imported fetch if you enabled node-fetch
       const verifyResponse = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
         headers: {
           Authorization: `Bearer ${paystackSecretKey}`,
@@ -909,8 +914,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Paystack Webhook endpoint (handled in index.ts with raw body parsing)
   app.post("/api/payments/webhook", async (req, res) => {
     try {
-      // 1. Validate the signature
-      const hash = crypto.createHmac('sha512', process.env.PAYSTACK_SECRET_KEY || '').update(req.body.toString()).digest('hex');
+      // The server should provide the raw body (Buffer or string) in req.body for webhook validation.
+      // If index.ts already provided req.rawBody, prefer that. Fall back to req.body when it's a string.
+      const rawBody = (req as any).rawBody ?? (typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
+      const hash = crypto.createHmac('sha512', process.env.PAYSTACK_SECRET_KEY || '').update(rawBody.toString()).digest('hex');
       
       // Use the signature header sent by Paystack
       if (hash !== req.headers['x-paystack-signature']) {
@@ -918,7 +925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).send("Unauthorized");
       }
 
-      const event = JSON.parse(req.body.toString());
+      const event = JSON.parse(rawBody.toString());
       console.log("WEBHOOK RECEIVED:", event.event);
 
       // We only care about successful transaction finalizations
@@ -994,6 +1001,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   return createServer(app);
-}
-
 }
