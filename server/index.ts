@@ -110,3 +110,4 @@ app.use((req, res, next) => {
     console.error("Startup error:", err);
     process.exit(1);
   }
+})();
