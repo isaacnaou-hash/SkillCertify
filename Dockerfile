@@ -5,7 +5,6 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install native dependencies needed for 'canvas'
-# FIXED: Added backslashes to correctly chain the multi-line command
 RUN apk add --no-cache \
     python3 \
     make \
@@ -19,14 +18,13 @@ RUN apk add --no-cache \
 
 # Install all npm dependencies
 COPY package*.json ./
-COPY tsconfig.json ./
 RUN npm install
 
 # Copy the rest of your source code
 COPY . .
 
-# Run the build script to compile your app
-# This will now use tsc for the backend (see package.json)
+# Run the build script
+# This will use esbuild (see package.json)
 RUN npm run build
 
 
@@ -37,7 +35,6 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Install only the runtime libraries needed for 'canvas'
-# FIXED: Added backslashes to correctly chain the multi-line command
 RUN apk add --no-cache \
     cairo \
     jpeg \
@@ -58,5 +55,4 @@ EXPOSE 5000
 
 # Start the server
 # Dokploy injects the real secrets here at runtime
-# FIXED: Corrected the JSON array syntax and path
 CMD ["node", "dist/server/index.js"]
