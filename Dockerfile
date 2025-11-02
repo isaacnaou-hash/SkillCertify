@@ -2,6 +2,11 @@
 # This stage builds your app and installs all dependencies
 FROM node:20-alpine AS builder
 
+# --- THIS IS THE FIX (Part 1) ---
+# Declare build arguments for BOTH keys (secret and public)
+ARG PAYSTACK_SECRET_KEY_ARG
+ARG VITE_PAYSTACK_PUBLIC_KEY_ARG
+
 WORKDIR /app
 
 # Install native dependencies needed for 'canvas'
@@ -23,8 +28,14 @@ RUN npm install
 # Copy the rest of your source code
 COPY . .
 
+# --- THIS IS THE FIX (Part 2) ---
+# Set ENV for the build script, making BOTH keys available
+ENV PAYSTACK_SECRET_KEY=$PAYSTACK_SECRET_KEY_ARG
+ENV VITE_PAYSTACK_PUBLIC_KEY=$VITE_PAYSTACK_PUBLIC_KEY_ARG
+
 # Run the build script
-# This will use esbuild (see package.json)
+# - 'vite build' will now find VITE_PAYSTACK_PUBLIC_KEY and embed it in the frontend
+# - 'esbuild' will run (but our server/routes.ts file will ignore the build-time key)
 RUN npm run build
 
 
