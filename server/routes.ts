@@ -12,23 +12,25 @@ import fetch from 'node-fetch';
 
 // =========================================================================
 // 🔥 CRITICAL FIX: Defined Paystack Configuration outside all handlers
-// (Keep this constant structure, as it's technically correct for module caching)
+// NOTE: We keep this definition, but the guard function will now read 
+// directly from process.env every time to avoid module caching issues.
 // =========================================================================
-const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_INIT_URL = 'https://api.paystack.co/transaction/initialize';
 const PAYSTACK_CHARGE_URL = 'https://api.paystack.co/charge';
 const PAYSTACK_VERIFY_BASE_URL = 'https://api.paystack.co/transaction/verify/';
 
 // Guard function to ensure keys are present before execution
-function requirePaystackConfig(res: express.Response) {
-    const key = PAYSTACK_SECRET_KEY;
+// This function now reads the key directly from process.env every time.
+function requirePaystackConfig(res: express.Response): string | false {
+    // 💡 FINAL FIX: Read directly from the environment inside the function
+    const key = process.env.PAYSTACK_SECRET_KEY;
     const keyLength = key ? key.length : 0;
     
     // Check if the key is missing or suspiciously short
     if (!key || keyLength < 10) { 
-        // CRITICAL DEBUG LOG: Log exactly what the server sees at the moment of failure
+        // CRITICAL DEBUG LOG
         console.error(
-            `[FATAL PAYMENT CONFIG] Key check failed! Value: ${key ? key.substring(0, 8) + '...' : 'UNDEFINED/NULL'} | Length: ${keyLength}`
+            `[FATAL PAYMENT CONFIG] Runtime key check failed! Value: ${key ? key.substring(0, 8) + '...' : 'UNDEFINED/NULL'} | Length: ${keyLength}`
         );
         res.status(500).json({
             success: false,
@@ -36,7 +38,7 @@ function requirePaystackConfig(res: express.Response) {
         });
         return false;
     }
-    return true;
+    return key; // Return the key if successful
 }
 // =========================================================================
 
@@ -107,8 +109,9 @@ async function validateUserAuthToken(token: string | undefined): Promise<string 
 
 // --- CRITICAL PAYMENT CHECK (Renamed and simplified) ---
 function checkPaymentConfiguration() {
-  if (PAYSTACK_SECRET_KEY) {
-    console.log("CRITICAL CHECK PASSED: PAYSTACK_SECRET_KEY is available (length:", PAYSTACK_SECRET_KEY.length, ")");
+    const key = process.env.PAYSTACK_SECRET_KEY;
+  if (key) {
+    console.log("CRITICAL CHECK PASSED: PAYSTACK_SECRET_KEY is available (length:", key.length, ")");
   } else {
     console.error("CRITICAL: PAYSTACK_SECRET_KEY is missing at route registration time.");
   }
@@ -269,12 +272,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
 // =================================================================================
-// 🔥 CRITICAL FIX: NEW GENERIC PAYSTACK INITIALIZATION ROUTE (Using defined key)
+// 🔥 CRITICAL FIX: NEW GENERIC PAYSTACK INITIALIZATION ROUTE (FINAL ATTEMPT)
 // =================================================================================
 
 app.post("/api/payments/initialize", async (req, res) => {
-    // CRITICAL FIX 1: Check for config first
-    if (!requirePaystackConfig(res)) return;
+    // 1. Get the key directly from the guard (FINAL FIX)
+    const paystackSecretKey = requirePaystackConfig(res);
+    if (!paystackSecretKey) return;
 
     try {
         const { amount, email, sessionId, tempToken } = req.body; // Expecting base currency amount (e.g., 8.00)
@@ -318,8 +322,8 @@ app.post("/api/payments/initialize", async (req, res) => {
         const response = await fetch(PAYSTACK_INIT_URL, {
             method: 'POST',
             headers: {
-                // CRITICAL FIX 3: Use the pre-fetched PAYSTACK_SECRET_KEY constant
-                'Authorization': `Bearer ${PAYSTACK_SECRET_KEY}`, 
+                // CRITICAL FIX 3: Use the key returned by the guard function
+                'Authorization': `Bearer ${paystackSecretKey}`, 
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(paystackBody)
@@ -636,8 +640,9 @@ app.post("/api/payments/initialize", async (req, res) => {
         return res.status(400).json({ message: "Temporary registration token is required" });
       }
 
-      // CRITICAL FIX 5: Check for config first
-      if (!requirePaystackConfig(res)) return;
+      // CRITICAL FIX 5: Check for config first and get the live key
+      const paystackSecretKey = requirePaystackConfig(res);
+      if (!paystackSecretKey) return;
 
       // Get temporary registration data
       const tempRegistration = await storage.getTempRegistration(tempToken);
@@ -662,13 +667,13 @@ app.post("/api/payments/initialize", async (req, res) => {
       // Verify payment with Paystack
       
       // --- DEBUG LOG ADDED HERE ---
-      console.log(`[VERIFY DEBUG] paystackSecretKey used in fetch: ${PAYSTACK_SECRET_KEY ? 'SET (' + PAYSTACK_SECRET_KEY.length + ' chars)' : 'MISSING/EMPTY'}`);
+      console.log(`[VERIFY DEBUG] paystackSecretKey used in fetch: ${paystackSecretKey ? 'SET (' + paystackSecretKey.length + ' chars)' : 'MISSING/EMPTY'}`);
       // ----------------------------
 
       // Use global fetch (Node 18+) or imported fetch if you enabled node-fetch
       const verifyResponse = await fetch(`${PAYSTACK_VERIFY_BASE_URL}${reference}`, {
         headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+          Authorization: `Bearer ${paystackSecretKey}`,
         },
       });
 
@@ -938,8 +943,9 @@ app.post("/api/payments/initialize", async (req, res) => {
         });
       }
 
-      // CRITICAL FIX 6: Check for config first
-      if (!requirePaystackConfig(res)) return;
+      // CRITICAL FIX 6: Check for config first and get the live key
+      const paystackSecretKey = requirePaystackConfig(res);
+      if (!paystackSecretKey) return;
 
       // Generate unique reference for this transaction
       const reference = `EP_MPESA_${sessionId}_${Date.now()}`;
@@ -967,8 +973,8 @@ app.post("/api/payments/initialize", async (req, res) => {
       const chargeResponse = await fetch(PAYSTACK_CHARGE_URL, {
             method: 'POST',
             headers: {
-                // CRITICAL FIX 7: Use the pre-fetched PAYSTACK_SECRET_KEY constant
-                'Authorization': `Bearer ${PAYSTACK_SECRET_KEY}`, 
+                // CRITICAL FIX 7: Use the key returned by the guard function
+                'Authorization': `Bearer ${paystackSecretKey}`, 
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(chargeData)
