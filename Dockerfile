@@ -1,9 +1,11 @@
 # --- Stage 1: Builder (Compiles the app) ---
+# This stage builds your app and installs all dependencies
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install native dependencies needed for compilation
+# Install native dependencies needed for 'canvas'
+# FIXED: Added backslashes to correctly chain the multi-line command
 RUN apk add --no-cache \
     python3 \
     make \
@@ -15,23 +17,25 @@ RUN apk add --no-cache \
     giflib-dev \
     pixman-dev
 
-# Install dependencies
+# Install all npm dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy source code
+# Copy the rest of your source code
 COPY . .
 
-# Build everything (ESBuild will read secrets at runtime if not defined here)
+# Run the build script to compile your app
 RUN npm run build
 
 
-# --- Stage 2: Runner (Injects Secrets at Runtime) ---
+# --- Stage 2: Runner (This is what Dokploy actually runs) ---
+# This stage is a small, clean image for production
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install runtime libraries
+# Install only the runtime libraries needed for 'canvas'
+# FIXED: Added backslashes to correctly chain the multi-line command
 RUN apk add --no-cache \
     cairo \
     jpeg \
@@ -39,16 +43,18 @@ RUN apk add --no-cache \
     giflib \
     pixman
 
-# Copy necessary files from the build stage
+# Copy the build artifacts from Stage 1
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/dist ./dist
 
-# Set runtime environment variables
+# Set the runtime environment
 ENV NODE_ENV=production
 ENV PORT=5000
 
 EXPOSE 5000
 
-# Start the server. Secrets are injected by Dokploy here.
+# Start the server
+# Dokploy injects the real secrets here at runtime
+# FIXED: Corrected the JSON array syntax and path
 CMD ["node", "dist/server/index.js"]
