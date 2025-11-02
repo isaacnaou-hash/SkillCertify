@@ -1,4 +1,3 @@
-
 import type { Express } from "express";
 import express from "express";
 import crypto from "crypto";
@@ -10,6 +9,28 @@ import { z } from "zod";
 
 // CRITICAL FIX: You must import fetch for Paystack API calls in older Node versions.
 import fetch from 'node-fetch';
+
+// =========================================================================
+// 🔥 CRITICAL FIX: Defined Paystack Configuration outside all handlers
+// =========================================================================
+const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+const PAYSTACK_INIT_URL = 'https://api.paystack.co/transaction/initialize';
+const PAYSTACK_CHARGE_URL = 'https://api.paystack.co/charge';
+const PAYSTACK_VERIFY_BASE_URL = 'https://api.paystack.co/transaction/verify/';
+
+// Guard function to ensure keys are present before execution
+function requirePaystackConfig(res: express.Response) {
+    if (!PAYSTACK_SECRET_KEY || PAYSTACK_SECRET_KEY.length < 10) {
+        console.error("CRITICAL: PAYSTACK_SECRET_KEY is missing or invalid in server environment.");
+        res.status(500).json({
+            success: false,
+            message: "Payment system not configured. Please contact support." // User-facing error
+        });
+        return false;
+    }
+    return true;
+}
+// =========================================================================
 
 // Secure session token storage (using database now)
 const sessionTokens = new Map<string, { sessionId: string; userId: string; createdAt: number }>();
@@ -76,15 +97,12 @@ async function validateUserAuthToken(token: string | undefined): Promise<string 
   }
 }
 
-// --- NEW CRITICAL PAYMENT CHECK ---
+// --- NEW CRITICAL PAYMENT CHECK (Renamed and simplified) ---
 function checkPaymentConfiguration() {
-  const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
-  if (!paystackSecretKey) {
-    // If this fails, the server should crash loudly, but your diagnostic logs suggest
-    // the value is there, so we will still check inside the routes.
-    console.error("CRITICAL: PAYSTACK_SECRET_KEY is missing at route registration time.");
+  if (PAYSTACK_SECRET_KEY) {
+    console.log("CRITICAL CHECK PASSED: PAYSTACK_SECRET_KEY is available (length:", PAYSTACK_SECRET_KEY.length, ")");
   } else {
-    console.log("CRITICAL CHECK PASSED: PAYSTACK_SECRET_KEY is available (length:", paystackSecretKey.length, ")");
+    console.error("CRITICAL: PAYSTACK_SECRET_KEY is missing at route registration time.");
   }
 }
 // ---------------------------------
@@ -241,108 +259,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Invalid session data", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
-  
+  
 // =================================================================================
-// 🔥 CRITICAL FIX: NEW GENERIC PAYSTACK INITIALIZATION ROUTE
-// This is the route that talks to Paystack, which was missing/confused with the session creation route.
+// 🔥 CRITICAL FIX: NEW GENERIC PAYSTACK INITIALIZATION ROUTE (Using defined key)
 // =================================================================================
 
 app.post("/api/payments/initialize", async (req, res) => {
-    const PAYSTACK_INIT_URL = 'https://api.paystack.co/transaction/initialize';
-    const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+    // CRITICAL FIX 1: Check for config first
+    if (!requirePaystackConfig(res)) return;
 
-    try {
-        const { amount, email, sessionId, tempToken } = req.body; // Expecting base currency amount (e.g., 8.00)
+    try {
+        const { amount, email, sessionId, tempToken } = req.body; // Expecting base currency amount (e.g., 8.00)
 
-        // Basic input validation
-        if (!amount || !email || (!sessionId && !tempToken)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields: amount, email, and either sessionId or tempToken.'
-            });
-        }
+        // Basic input validation
+        if (!amount || !email || (!sessionId && !tempToken)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields: amount, email, and either sessionId or tempToken.'
+            });
+        }
 
-        // Configuration check
-        if (!paystackSecretKey) {
-            console.error("[PAYMENT ERROR] PAYSTACK_SECRET_KEY is missing/empty during initialization.");
-            return res.status(500).json({
-                success: false,
-                message: "Payment system not configured on the server." // This message is now accurate
-            });
-        }
+        // CRITICAL FIX 2: Paystack requires amount in kobo/smallest denomination
+        const amountInKobo = Math.round(amount * 100);
 
-        // CRITICAL FIX 1: Paystack requires amount in kobo/smallest denomination
-        const amountInKobo = Math.round(amount * 100);
-
-        if (amountInKobo < 5000) { 
-            return res.status(400).json({
-                success: false,
-                message: 'Validation Error: Transaction amount is too low for Paystack (must be at least 50.00 base unit).'
-            });
-        }
-        
-        // Generate reference (if the client didn't provide one)
-        // Use tempToken or sessionId for reference tracking
-        const reference = `EP_${sessionId || tempToken}_${Date.now()}`;
+        if (amountInKobo < 5000) { 
+            return res.status(400).json({
+                success: false,
+                message: 'Validation Error: Transaction amount is too low for Paystack (must be at least 50.00 base unit).'
+            });
+        }
+        
+        // Generate reference (if the client didn't provide one)
+        // Use tempToken or sessionId for reference tracking
+        const reference = `EP_${sessionId || tempToken}_${Date.now()}`;
 
 
-        const paystackBody = {
-            email: email,
-            amount: amountInKobo,
-            reference: reference, 
-            metadata: {
-                sessionId: sessionId,
-                tempToken: tempToken
-            }
-        };
-        
-        console.log(`[Paystack] Initializing generic transaction for: ${email}, Amount: ${amountInKobo}`);
-        
-        // 2. Make External API Call to Paystack
-        const response = await fetch(PAYSTACK_INIT_URL, {
-            method: 'POST',
-            headers: {
-                // CRITICAL FIX 2: Use the Secret Key with 'Bearer' prefix
-                'Authorization': `Bearer ${paystackSecretKey}`, 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(paystackBody)
-        });
+        const paystackBody = {
+            email: email,
+            amount: amountInKobo,
+            reference: reference, 
+            metadata: {
+                sessionId: sessionId,
+                tempToken: tempToken
+            }
+        };
+        
+        console.log(`[Paystack] Initializing generic transaction for: ${email}, Amount: ${amountInKobo}`);
+        
+        // 2. Make External API Call to Paystack
+        const response = await fetch(PAYSTACK_INIT_URL, {
+            method: 'POST',
+            headers: {
+                // CRITICAL FIX 3: Use the pre-fetched PAYSTACK_SECRET_KEY constant
+                'Authorization': `Bearer ${PAYSTACK_SECRET_KEY}`, 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(paystackBody)
+        });
 
-        const paystackData = await response.json();
+        const paystackData = await response.json();
 
-        // 3. Handle Paystack Response (Success vs. Failure)
-        if (response.ok && paystackData.status === true) {
-            // Success case: Paystack returned a valid authorization URL
-            console.log(`[Paystack Success] Reference: ${paystackData.data.reference}. Auth URL received.`);
-            
-            // Return the necessary authorization_url for the frontend to open the widget
-            return res.status(200).json({
-                success: true,
-                message: 'Transaction initialized successfully.',
-                reference: paystackData.data.reference,
-                authorization_url: paystackData.data.authorization_url // CRITICAL: Frontend needs this!
-            });
-        } else {
-            // CRITICAL FIX 3: Log the actual error from Paystack and return 400 status.
-            const errorMessage = paystackData.message || 'Unknown Paystack API rejection.';
-            console.error('[CRITICAL PAYSTACK API ERROR]', errorMessage, paystackData.data);
-            
-            return res.status(400).json({
-                success: false,
-                message: `Paystack Error: ${errorMessage}`, // Return the actual Paystack error
-                details: paystackData
-            });
-        }
+        // 3. Handle Paystack Response (Success vs. Failure)
+        if (response.ok && paystackData.status === true) {
+            // Success case: Paystack returned a valid authorization URL
+            console.log(`[Paystack Success] Reference: ${paystackData.data.reference}. Auth URL received.`);
+            
+            // Return the necessary authorization_url for the frontend to open the widget
+            return res.status(200).json({
+                success: true,
+                message: 'Transaction initialized successfully.',
+                reference: paystackData.data.reference,
+                authorization_url: paystackData.data.authorization_url // CRITICAL: Frontend needs this!
+            });
+        } else {
+            // CRITICAL FIX 4: Log the actual error from Paystack and return 400 status.
+            const errorMessage = paystackData.message || 'Unknown Paystack API rejection.';
+            console.error('[CRITICAL PAYSTACK API ERROR]', errorMessage, paystackData.data);
+            
+            return res.status(400).json({
+                success: false,
+                message: `Paystack Error: ${errorMessage}`, // Return the actual Paystack error
+                details: paystackData
+            });
+        }
 
-    } catch (error) {
-        console.error('[SERVER CATCH ERROR] Initialize payment failed:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error while processing payment request.',
-            details: error instanceof Error ? error.message : "Unknown server error"
-        });
-    }
+    } catch (error) {
+        console.error('[SERVER CATCH ERROR] Initialize payment failed:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error while processing payment request.',
+            details: error instanceof Error ? error.message : "Unknown server error"
+        });
+    }
 });
 
 // =================================================================================
@@ -620,6 +628,9 @@ app.post("/api/payments/initialize", async (req, res) => {
         return res.status(400).json({ message: "Temporary registration token is required" });
       }
 
+      // CRITICAL FIX 5: Check for config first
+      if (!requirePaystackConfig(res)) return;
+
       // Get temporary registration data
       const tempRegistration = await storage.getTempRegistration(tempToken);
       if (!tempRegistration) {
@@ -641,21 +652,15 @@ app.post("/api/payments/initialize", async (req, res) => {
       }
 
       // Verify payment with Paystack
-      const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
       
       // --- DEBUG LOG ADDED HERE ---
-      console.log(`[VERIFY DEBUG] paystackSecretKey inside handler: ${paystackSecretKey ? 'SET (' + paystackSecretKey.length + ' chars)' : 'MISSING/EMPTY'}`);
+      console.log(`[VERIFY DEBUG] paystackSecretKey inside handler: ${PAYSTACK_SECRET_KEY ? 'SET (' + PAYSTACK_SECRET_KEY.length + ' chars)' : 'MISSING/EMPTY'}`);
       // ----------------------------
 
-      if (!paystackSecretKey) {
-        // THIS IS THE LINE THAT IS FAILING despite startup logs
-        return res.status(500).json({ success: false, message: "Payment system not configured" });
-      }
-
       // Use global fetch (Node 18+) or imported fetch if you enabled node-fetch
-      const verifyResponse = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+      const verifyResponse = await fetch(`${PAYSTACK_VERIFY_BASE_URL}${reference}`, {
         headers: {
-          Authorization: `Bearer ${paystackSecretKey}`,
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
         },
       });
 
@@ -925,77 +930,66 @@ app.post("/api/payments/initialize", async (req, res) => {
         });
       }
 
-      // Verify Paystack secret key is available
-      const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
-      
-      // --- DEBUG LOG ADDED HERE ---
-      console.log(`[MPESA DEBUG] paystackSecretKey inside handler: ${paystackSecretKey ? 'SET (' + paystackSecretKey.length + ' chars)' : 'MISSING/EMPTY'}`);
-      // ----------------------------
-      
-      if (!paystackSecretKey) {
-        // THIS IS THE LINE THAT IS FAILING despite startup logs
-        return res.status(500).json({ 
-          success: false, 
-          message: "Payment system not configured" 
-        });
-      }
+      // CRITICAL FIX 6: Check for config first
+      if (!requirePaystackConfig(res)) return;
 
       // Generate unique reference for this transaction
       const reference = `EP_MPESA_${sessionId}_${Date.now()}`;
-        
-      // CRITICAL: Amount must be in the smallest unit (e.g., KES 10.00 is 1000 cents)
-      const amountInCents = Math.round(amount * 100);
+        
+      // CRITICAL: Amount must be in the smallest unit (e.g., KES 10.00 is 1000 cents)
+      const amountInCents = Math.round(amount * 100);
 
       // Initialize M-Pesa transaction using Paystack Charge API
       const chargeData = {
         email,
-        amount: amountInCents, // Use amount in smallest unit
-        reference,
-        // Paystack charge request body fields for M-Pesa
-        mobile_money: {
-            phone
-        },
-        currency: 'KES', // Assuming M-Pesa is KES
-        metadata: {
-            sessionId,
-            firstName,
-            lastName
-        }
+        amount: amountInCents, // Use amount in smallest unit
+        reference,
+        // Paystack charge request body fields for M-Pesa
+        mobile_money: {
+            phone
+        },
+        currency: 'KES', // Assuming M-Pesa is KES
+        metadata: {
+            sessionId,
+            firstName,
+            lastName
+        }
       };
-      
-      const chargeResponse = await fetch('https://api.paystack.co/charge', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${paystackSecretKey}`, 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(chargeData)
-        });
+      
+      const chargeResponse = await fetch(PAYSTACK_CHARGE_URL, {
+            method: 'POST',
+            headers: {
+                // CRITICAL FIX 7: Use the pre-fetched PAYSTACK_SECRET_KEY constant
+                'Authorization': `Bearer ${PAYSTACK_SECRET_KEY}`, 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(chargeData)
+        });
 
-        const chargeDataResponse = await chargeResponse.json();
+        const chargeDataResponse = await chargeResponse.json();
 
-        if (chargeResponse.ok && chargeDataResponse.status === true) {
-            console.log(`[MPESA Success] Reference: ${reference}. Charge initialized.`);
-            
-            // Return the reference and status to the frontend for polling/verification
-            return res.status(200).json({
-                success: true,
-                message: 'M-Pesa push sent successfully. Complete the transaction on your phone.',
-                reference: chargeDataResponse.data.reference,
-                status: chargeDataResponse.data.status // Should be 'pending' or similar
-            });
-        } else {
-            // Log the actual error from Paystack
-            const errorMessage = chargeDataResponse.message || 'Unknown Paystack M-Pesa API rejection.';
-            console.error('[CRITICAL MPESA API ERROR]', errorMessage, chargeDataResponse.data);
-            
-            return res.status(400).json({
-                success: false,
-                message: `M-Pesa Initialization Error: ${errorMessage}`, 
-                details: chargeDataResponse
-            });
-        }
-        
+        if (chargeResponse.ok && chargeDataResponse.status === true) {
+            console.log(`[MPESA Success] Reference: ${reference}. Charge initialized.`);
+            
+            // Return the reference and status to the frontend for polling/verification
+            return res.status(200).json({
+                success: true,
+                message: 'M-Pesa push sent successfully. Complete the transaction on your phone.',
+                reference: chargeDataResponse.data.reference,
+                status: chargeDataResponse.data.status // Should be 'pending' or similar
+            });
+        } else {
+            // Log the actual error from Paystack
+            const errorMessage = chargeDataResponse.message || 'Unknown Paystack M-Pesa API rejection.';
+            console.error('[CRITICAL MPESA API ERROR]', errorMessage, chargeDataResponse.data);
+            
+            return res.status(400).json({
+                success: false,
+                message: `M-Pesa Initialization Error: ${errorMessage}`, 
+                details: chargeDataResponse
+            });
+        }
+        
     } catch (error) {
       console.error("M-Pesa initialization error:", error);
       res.status(500).json({ message: "Failed to initialize M-Pesa payment" });
