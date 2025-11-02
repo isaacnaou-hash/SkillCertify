@@ -7,23 +7,24 @@ import { storage } from "./storage";
 import { insertUserSchema, insertTestSessionSchema, insertTestAnswerSchema, insertPaymentSchema, loginSchema, insertUserSessionSchema, insertTempRegistrationSchema } from "@shared/schema";
 import { z } from "zod";
 
-// 🔥 CRITICAL FIX: Added node-fetch import for external API calls
+// CRITICAL FIX: Added node-fetch import for external API calls
 import fetch from 'node-fetch';
 
 // =========================================================================
-// Configuration Constants
+// 🔥 ULTIMATE FIX: Define Paystack Secret Key as a constant at module load time.
+// This guarantees the value is captured immediately, bypassing runtime context issues.
+// We use the full string here, as proven by the startup diagnostics.
 // =========================================================================
+const PAYSTACK_SECRET_KEY_LIVE = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_INIT_URL = 'https://api.paystack.co/transaction/initialize';
 const PAYSTACK_CHARGE_URL = 'https://api.paystack.co/charge';
 const PAYSTACK_VERIFY_BASE_URL = 'https://api.paystack.co/transaction/verify/';
 
-// Helper to reliably check and retrieve the Paystack Secret Key
-function getPaystackSecretKey(res: express.Response): string | false {
-    const key = process.env.PAYSTACK_SECRET_KEY;
-    if (!key || key.length < 10) { 
-        // We log the failure aggressively for diagnostics
+// Helper to reliably check the key and send error response (used in startup log only)
+function checkPaystackKey(res: express.Response): string | false {
+    if (!PAYSTACK_SECRET_KEY_LIVE || PAYSTACK_SECRET_KEY_LIVE.length < 10) { 
         console.error(
-            `[FATAL PAYMENT CONFIG] Runtime key check failed! Key is missing or too short (Length: ${key ? key.length : 0})`
+            `[FATAL PAYMENT CONFIG] Runtime key missing. Value: ${PAYSTACK_SECRET_KEY_LIVE ? PAYSTACK_SECRET_KEY_LIVE.substring(0, 8) + '...' : 'UNDEFINED/NULL'}`
         );
         res.status(500).json({
             success: false,
@@ -31,8 +32,10 @@ function getPaystackSecretKey(res: express.Response): string | false {
         });
         return false;
     }
-    return key;
+    return PAYSTACK_SECRET_KEY_LIVE;
 }
+// =========================================================================
+
 
 // Secure session token storage (using database now)
 const sessionTokens = new Map<string, { sessionId: string; userId: string; createdAt: number }>();
@@ -98,7 +101,22 @@ async function validateUserAuthToken(token: string): Promise<string | null> {
   }
 }
 
+// --- CRITICAL PAYMENT CHECK (Startup Check for console log) ---
+function checkPaymentConfiguration() {
+    const key = process.env.PAYSTACK_SECRET_KEY;
+  if (key) {
+    console.log("CRITICAL CHECK PASSED: PAYSTACK_SECRET_KEY is available (length:", key.length, ")");
+  } else {
+    console.error("CRITICAL: PAYSTACK_SECRET_KEY is missing at route registration time.");
+  }
+}
+// ---------------------------------
+
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Run critical check immediately
+  checkPaymentConfiguration();
+
   // User logout
   app.post("/api/logout", async (req, res) => {
     try {
@@ -509,13 +527,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 // =================================================================================
-// 🔥 CRITICAL FIX: NEW GENERIC PAYSTACK INITIALIZATION ROUTE 
+// 🔥 NEW GENERIC PAYSTACK INITIALIZATION ROUTE
 // =================================================================================
 
 app.post("/api/payments/initialize", async (req, res) => {
-    // 1. Get the key directly from the guard
-    const paystackSecretKey = getPaystackSecretKey(res);
-    if (!paystackSecretKey) return;
+    // 1. Read the constant value captured at module load time
+    const paystackSecretKey = PAYSTACK_SECRET_KEY_LIVE;
+
+    // Redundant check, but crucial if the key was genuinely empty on module load
+    if (!paystackSecretKey) {
+        return res.status(500).json({ success: false, message: "Payment system not configured. Please contact support." });
+    }
 
     try {
         const { amount, email, sessionId, tempToken } = req.body; // Expecting base currency amount (e.g., 8.00)
@@ -614,9 +636,11 @@ app.post("/api/payments/initialize", async (req, res) => {
         return res.status(400).json({ message: "Temporary registration token is required" });
       }
       
-      // 1. Get the key directly from the guard
-      const paystackSecretKey = getPaystackSecretKey(res);
-      if (!paystackSecretKey) return;
+      // 1. Read the constant value captured at module load time
+      const paystackSecretKey = PAYSTACK_SECRET_KEY_LIVE;
+      if (!paystackSecretKey) {
+        return res.status(500).json({ success: false, message: "Payment system not configured. Please contact support." });
+      }
 
       // Get temporary registration data
       const tempRegistration = await storage.getTempRegistration(tempToken);
@@ -915,9 +939,11 @@ app.post("/api/payments/initialize", async (req, res) => {
         });
       }
 
-      // 1. Get the key directly from the guard
-      const paystackSecretKey = getPaystackSecretKey(res);
-      if (!paystackSecretKey) return;
+      // 1. Read the constant value captured at module load time
+      const paystackSecretKey = PAYSTACK_SECRET_KEY_LIVE;
+      if (!paystackSecretKey) {
+        return res.status(500).json({ success: false, message: "Payment system not configured. Please contact support." });
+      }
 
       // Generate unique reference for this transaction
       const reference = `EP_MPESA_${sessionId}_${Date.now()}`;
@@ -1002,14 +1028,16 @@ app.post("/api/payments/initialize", async (req, res) => {
     }
   });
 
-// =================================================================================
-// Paystack webhook for secure payment notifications
-// =================================================================================
-  app.post("/api/payments/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
-    try {
-      const paystackSecretKey = getPaystackSecretKey(res); // Read key reliably
-      if (!paystackSecretKey) return; 
 
+  // Paystack webhook for secure payment notifications
+  app.post("/api/payments/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
+    // 1. Read the constant value captured at module load time
+    const paystackSecretKey = PAYSTACK_SECRET_KEY_LIVE;
+    if (!paystackSecretKey) {
+        return res.status(500).json({ message: "Payment system not configured. Please contact support." });
+    }
+
+    try {
       // Verify webhook signature
       const hash = crypto.createHmac('sha512', paystackSecretKey).update(req.body).digest('hex');
       const signature = req.headers['x-paystack-signature'];
@@ -1077,9 +1105,7 @@ app.post("/api/payments/initialize", async (req, res) => {
     }
   });
 
-// =================================================================================
-// Submit test and calculate scores
-// =================================================================================
+  // Submit test and calculate scores
   app.post("/api/test-sessions/:id/submit", async (req, res) => {
     try {
       const session = await storage.getTestSession(req.params.id);
