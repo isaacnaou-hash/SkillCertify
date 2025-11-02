@@ -19,12 +19,14 @@ RUN apk add --no-cache \
 
 # Install all npm dependencies
 COPY package*.json ./
+COPY tsconfig.json ./
 RUN npm install
 
 # Copy the rest of your source code
 COPY . .
 
 # Run the build script to compile your app
+# This will now use tsc for the backend (see package.json)
 RUN npm run build
 
 
