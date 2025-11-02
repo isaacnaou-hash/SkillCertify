@@ -7,38 +7,32 @@ import { storage } from "./storage";
 import { insertUserSchema, insertTestSessionSchema, insertTestAnswerSchema, insertPaymentSchema, loginSchema, insertUserSessionSchema, insertTempRegistrationSchema } from "@shared/schema";
 import { z } from "zod";
 
-// CRITICAL FIX: You must import fetch for Paystack API calls in older Node versions.
+// 🔥 CRITICAL FIX: Added node-fetch import for external API calls
 import fetch from 'node-fetch';
 
 // =========================================================================
-// 🔥 FINAL CONFIGURATION: Remove module-level key variable to force runtime lookup.
-// The base URLs remain constant.
+// Configuration Constants
 // =========================================================================
 const PAYSTACK_INIT_URL = 'https://api.paystack.co/transaction/initialize';
 const PAYSTACK_CHARGE_URL = 'https://api.paystack.co/charge';
 const PAYSTACK_VERIFY_BASE_URL = 'https://api.paystack.co/transaction/verify/';
 
-// Guard function now reads the key and returns it, or sends the error response.
-function requirePaystackConfig(res: express.Response): string | false {
-    // 💡 FINAL FIX: Reading directly from process.env inside the function
+// Helper to reliably check and retrieve the Paystack Secret Key
+function getPaystackSecretKey(res: express.Response): string | false {
     const key = process.env.PAYSTACK_SECRET_KEY;
-    const keyLength = key ? key.length : 0;
-    
-    // Check if the key is missing or suspiciously short
-    if (!key || keyLength < 10) { 
-        // CRITICAL DEBUG LOG
+    if (!key || key.length < 10) { 
+        // We log the failure aggressively for diagnostics
         console.error(
-            `[FATAL PAYMENT CONFIG] Runtime key check failed! Value: ${key ? key.substring(0, 8) + '...' : 'UNDEFINED/NULL'} | Length: ${keyLength}`
+            `[FATAL PAYMENT CONFIG] Runtime key check failed! Key is missing or too short (Length: ${key ? key.length : 0})`
         );
         res.status(500).json({
             success: false,
-            message: "Payment system not configured. Please contact support." // User-facing error
+            message: "Payment system not configured. Please contact support."
         });
         return false;
     }
-    return key; // Return the key if successful
+    return key;
 }
-// =========================================================================
 
 // Secure session token storage (using database now)
 const sessionTokens = new Map<string, { sessionId: string; userId: string; createdAt: number }>();
@@ -83,8 +77,7 @@ function validateUserSessionAccess(userId: string, token: string): boolean {
 }
 
 // Validate user auth token using storage (24 hours)
-async function validateUserAuthToken(token: string | undefined): Promise<string | null> {
-  if (!token) return null;
+async function validateUserAuthToken(token: string): Promise<string | null> {
   try {
     const session = await storage.getUserSession(token);
     if (!session || session.type !== 'auth') {
@@ -105,25 +98,11 @@ async function validateUserAuthToken(token: string | undefined): Promise<string 
   }
 }
 
-// --- CRITICAL PAYMENT CHECK (Startup Check) ---
-function checkPaymentConfiguration() {
-    const key = process.env.PAYSTACK_SECRET_KEY;
-  if (key) {
-    console.log("CRITICAL CHECK PASSED: PAYSTACK_SECRET_KEY is available (length:", key.length, ")");
-  } else {
-    console.error("CRITICAL: PAYSTACK_SECRET_KEY is missing at route registration time.");
-  }
-}
-// ---------------------------------
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Run critical check immediately
-  checkPaymentConfiguration();
-
   // User logout
   app.post("/api/logout", async (req, res) => {
     try {
-      const authToken = req.headers['x-auth-token'] as string | undefined;
+      const authToken = req.headers['x-auth-token'] as string;
       if (!authToken) {
         return res.status(400).json({ message: "No auth token provided" });
       }
@@ -220,7 +199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:id", async (req, res) => {
     try {
       // SECURITY: Require authentication and ownership
-      const authToken = req.headers['x-auth-token'] as string | undefined;
+      const authToken = req.headers['x-auth-token'] as string;
       const authenticatedUserId = await validateUserAuthToken(authToken);
       
       if (!authenticatedUserId || authenticatedUserId !== req.params.id) {
@@ -268,110 +247,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Invalid session data", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
-  
-// =================================================================================
-// 🔥 CRITICAL FIX: NEW GENERIC PAYSTACK INITIALIZATION ROUTE (FINAL ATTEMPT)
-// =================================================================================
-
-app.post("/api/payments/initialize", async (req, res) => {
-    // 1. Get the key directly from the guard (FINAL FIX)
-    const paystackSecretKey = requirePaystackConfig(res);
-    if (!paystackSecretKey) return;
-
-    try {
-        const { amount, email, sessionId, tempToken } = req.body; // Expecting base currency amount (e.g., 8.00)
-
-        // Basic input validation
-        if (!amount || !email || (!sessionId && !tempToken)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields: amount, email, and either sessionId or tempToken.'
-            });
-        }
-
-        // CRITICAL FIX 2: Paystack requires amount in kobo/smallest denomination
-        const amountInKobo = Math.round(amount * 100);
-
-        if (amountInKobo < 5000) { 
-            return res.status(400).json({
-                success: false,
-                message: 'Validation Error: Transaction amount is too low for Paystack (must be at least 50.00 base unit).'
-            });
-        }
-        
-        // Generate reference (if the client didn't provide one)
-        // Use tempToken or sessionId for reference tracking
-        const reference = `EP_${sessionId || tempToken}_${Date.now()}`;
-
-
-        const paystackBody = {
-            email: email,
-            amount: amountInKobo,
-            reference: reference, 
-            metadata: {
-                sessionId: sessionId,
-                tempToken: tempToken
-            }
-        };
-        
-        console.log(`[Paystack] Initializing generic transaction for: ${email}, Amount: ${amountInKobo}`);
-        
-        // 2. Make External API Call to Paystack
-        const response = await fetch(PAYSTACK_INIT_URL, {
-            method: 'POST',
-            headers: {
-                // CRITICAL FIX 3: Use the key returned by the guard function
-                'Authorization': `Bearer ${paystackSecretKey}`, 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(paystackBody)
-        });
-
-        const paystackData = await response.json();
-
-        // 3. Handle Paystack Response (Success vs. Failure)
-        if (response.ok && paystackData.status === true) {
-            // Success case: Paystack returned a valid authorization URL
-            console.log(`[Paystack Success] Reference: ${paystackData.data.reference}. Auth URL received.`);
-            
-            // Return the necessary authorization_url for the frontend to open the widget
-            return res.status(200).json({
-                success: true,
-                message: 'Transaction initialized successfully.',
-                reference: paystackData.data.reference,
-                authorization_url: paystackData.data.authorization_url // CRITICAL: Frontend needs this!
-            });
-        } else {
-            // CRITICAL FIX 4: Log the actual error from Paystack and return 400 status.
-            const errorMessage = paystackData.message || 'Unknown Paystack API rejection.';
-            console.error('[CRITICAL PAYSTACK API ERROR]', errorMessage, paystackData.data);
-            
-            return res.status(400).json({
-                success: false,
-                message: `Paystack Error: ${errorMessage}`, // Return the actual Paystack error
-                details: paystackData
-            });
-        }
-
-    } catch (error) {
-        console.error('[SERVER CATCH ERROR] Initialize payment failed:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error while processing payment request.',
-            details: error instanceof Error ? error.message : "Unknown server error"
-        });
-    }
-});
-
-// =================================================================================
-// END OF NEW CRITICAL ROUTE
-// =================================================================================
 
   // Create test session (authenticated users)
   app.post("/api/test-sessions", async (req, res) => {
     try {
       // SECURITY: Require user authentication for session creation
-      const authToken = req.headers['x-auth-token'] as string | undefined;
+      const authToken = req.headers['x-auth-token'] as string;
       const authenticatedUserId = await validateUserAuthToken(authToken);
       
       if (!authenticatedUserId) {
@@ -410,7 +291,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       }
       
       // Validate session access token
-      const sessionToken = req.headers['x-session-token'] as string | undefined;
+      const sessionToken = req.headers['x-session-token'] as string;
       if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
         return res.status(401).json({ message: "Invalid or missing session token" });
       }
@@ -439,7 +320,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       }
       
       // Validate session access token
-      const sessionToken = req.headers['x-session-token'] as string | undefined;
+      const sessionToken = req.headers['x-session-token'] as string;
       if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
         return res.status(401).json({ message: "Invalid or missing session token" });
       }
@@ -457,7 +338,7 @@ app.post("/api/payments/initialize", async (req, res) => {
   app.get("/api/users/:userId/test-sessions", async (req, res) => {
     try {
       // Validate user auth token
-      const authToken = req.headers['x-auth-token'] as string | undefined;
+      const authToken = req.headers['x-auth-token'] as string;
       const authenticatedUserId = await validateUserAuthToken(authToken);
       
       if (!authenticatedUserId || authenticatedUserId !== req.params.userId) {
@@ -476,7 +357,7 @@ app.post("/api/payments/initialize", async (req, res) => {
   app.get("/api/users/:userId/incomplete-sessions", async (req, res) => {
     try {
       // Validate user auth token
-      const authToken = req.headers['x-auth-token'] as string | undefined;
+      const authToken = req.headers['x-auth-token'] as string;
       const authenticatedUserId = await validateUserAuthToken(authToken);
       
       if (!authenticatedUserId || authenticatedUserId !== req.params.userId) {
@@ -502,7 +383,7 @@ app.post("/api/payments/initialize", async (req, res) => {
   app.post("/api/users/:userId/resume-session/:sessionId", async (req, res) => {
     try {
       // Validate user auth token
-      const authToken = req.headers['x-auth-token'] as string | undefined;
+      const authToken = req.headers['x-auth-token'] as string;
       const authenticatedUserId = await validateUserAuthToken(authToken);
       
       if (!authenticatedUserId || authenticatedUserId !== req.params.userId) {
@@ -573,7 +454,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       }
       
       // Validate session access token
-      const sessionToken = req.headers['x-session-token'] as string | undefined;
+      const sessionToken = req.headers['x-session-token'] as string;
       if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
         return res.status(401).json({ message: "Invalid or missing session token" });
       }
@@ -602,7 +483,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       }
       
       // Validate session access token
-      const sessionToken = req.headers['x-session-token'] as string | undefined;
+      const sessionToken = req.headers['x-session-token'] as string;
       if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
         return res.status(401).json({ message: "Invalid or missing session token" });
       }
@@ -627,7 +508,102 @@ app.post("/api/payments/initialize", async (req, res) => {
     }
   });
 
-  // Verify payment and handle user creation
+// =================================================================================
+// 🔥 CRITICAL FIX: NEW GENERIC PAYSTACK INITIALIZATION ROUTE 
+// =================================================================================
+
+app.post("/api/payments/initialize", async (req, res) => {
+    // 1. Get the key directly from the guard
+    const paystackSecretKey = getPaystackSecretKey(res);
+    if (!paystackSecretKey) return;
+
+    try {
+        const { amount, email, sessionId, tempToken } = req.body; // Expecting base currency amount (e.g., 8.00)
+
+        // Basic input validation
+        if (!amount || !email || (!sessionId && !tempToken)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields: amount, email, and either sessionId or tempToken.'
+            });
+        }
+
+        // Paystack requires amount in kobo/smallest denomination
+        const amountInKobo = Math.round(amount * 100);
+
+        if (amountInKobo < 5000) { 
+            return res.status(400).json({
+                success: false,
+                message: 'Validation Error: Transaction amount is too low for Paystack (must be at least 50.00 base unit).'
+            });
+        }
+        
+        // Generate reference (if the client didn't provide one)
+        const reference = `EP_${sessionId || tempToken}_${Date.now()}`;
+
+
+        const paystackBody = {
+            email: email,
+            amount: amountInKobo,
+            reference: reference, 
+            metadata: {
+                sessionId: sessionId,
+                tempToken: tempToken
+            }
+        };
+        
+        console.log(`[Paystack] Initializing generic transaction for: ${email}, Amount: ${amountInKobo}`);
+        
+        // 2. Make External API Call to Paystack
+        const response = await fetch(PAYSTACK_INIT_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${paystackSecretKey}`, 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(paystackBody)
+        });
+
+        const paystackData = await response.json();
+
+        // 3. Handle Paystack Response (Success vs. Failure)
+        if (response.ok && paystackData.status === true) {
+            // Success case: Paystack returned a valid authorization URL
+            console.log(`[Paystack Success] Reference: ${paystackData.data.reference}. Auth URL received.`);
+            
+            // Return the necessary authorization_url for the frontend to open the widget
+            return res.status(200).json({
+                success: true,
+                message: 'Transaction initialized successfully.',
+                reference: paystackData.data.reference,
+                authorization_url: paystackData.data.authorization_url // CRITICAL: Frontend needs this!
+            });
+        } else {
+            // Log the actual error from Paystack and return 400 status.
+            const errorMessage = paystackData.message || 'Unknown Paystack API rejection.';
+            console.error('[CRITICAL PAYSTACK API ERROR]', errorMessage, paystackData.data);
+            
+            return res.status(400).json({
+                success: false,
+                message: `Paystack Error: ${errorMessage}`, // Return the actual Paystack error
+                details: paystackData
+            });
+        }
+
+    } catch (error) {
+        console.error('[SERVER CATCH ERROR] Initialize payment failed:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error while processing payment request.',
+            details: error instanceof Error ? error.message : "Unknown server error"
+        });
+    }
+});
+
+// =================================================================================
+// Verify payment and handle user creation
+// =================================================================================
+
   app.post("/api/payments/verify", async (req, res) => {
     try {
       const { reference, tempToken } = req.body;
@@ -637,9 +613,9 @@ app.post("/api/payments/initialize", async (req, res) => {
       if (!tempToken) {
         return res.status(400).json({ message: "Temporary registration token is required" });
       }
-
-      // CRITICAL FIX 5: Check for config first and get the live key
-      const paystackSecretKey = requirePaystackConfig(res);
+      
+      // 1. Get the key directly from the guard
+      const paystackSecretKey = getPaystackSecretKey(res);
       if (!paystackSecretKey) return;
 
       // Get temporary registration data
@@ -663,12 +639,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       }
 
       // Verify payment with Paystack
-      
-      // --- DEBUG LOG ADDED HERE ---
-      console.log(`[VERIFY DEBUG] paystackSecretKey used in fetch: ${paystackSecretKey ? 'SET (' + paystackSecretKey.length + ' chars)' : 'MISSING/EMPTY'}`);
-      // ----------------------------
 
-      // Use global fetch (Node 18+) or imported fetch if you enabled node-fetch
       const verifyResponse = await fetch(`${PAYSTACK_VERIFY_BASE_URL}${reference}`, {
         headers: {
           Authorization: `Bearer ${paystackSecretKey}`,
@@ -929,7 +900,10 @@ app.post("/api/payments/initialize", async (req, res) => {
     }
   });
 
-  // Initialize M-Pesa payment
+// =================================================================================
+// Initialize M-Pesa payment
+// =================================================================================
+
   app.post("/api/payments/initialize-mpesa", async (req, res) => {
     try {
       const { email, amount, phone, sessionId, firstName, lastName } = req.body;
@@ -941,74 +915,419 @@ app.post("/api/payments/initialize", async (req, res) => {
         });
       }
 
-      // CRITICAL FIX 6: Check for config first and get the live key
-      const paystackSecretKey = requirePaystackConfig(res);
+      // 1. Get the key directly from the guard
+      const paystackSecretKey = getPaystackSecretKey(res);
       if (!paystackSecretKey) return;
 
       // Generate unique reference for this transaction
       const reference = `EP_MPESA_${sessionId}_${Date.now()}`;
-        
-      // CRITICAL: Amount must be in the smallest unit (e.g., KES 10.00 is 1000 cents)
-      const amountInCents = Math.round(amount * 100);
+
+      // CRITICAL: Amount must be in the smallest unit (e.g., KES 10.00 is 1000 cents)
+      const amountInCents = Math.round(amount * 100);
 
       // Initialize M-Pesa transaction using Paystack Charge API
       const chargeData = {
         email,
-        amount: amountInCents, // Use amount in smallest unit
-        reference,
-        // Paystack charge request body fields for M-Pesa
+        amount: amountInCents, 
+        currency: 'KES',
         mobile_money: {
-            phone
+          phone: phone.startsWith('+') ? phone : `+254${phone.replace(/^0/, '')}`, // Ensure proper format
+          provider: 'mpesa'
         },
-        currency: 'KES', // Assuming M-Pesa is KES
+        reference,
         metadata: {
-            sessionId,
-            firstName,
-            lastName
+          sessionId,
+          testType: 'english_proficiency',
+          paymentMethod: 'mpesa',
+          firstName,
+          lastName
         }
       };
-      
+
+      console.log("Initializing M-Pesa payment with data:", {
+        email,
+        amount: amountInCents,
+        phone: chargeData.mobile_money.phone,
+        reference,
+        sessionId
+      });
+
       const chargeResponse = await fetch(PAYSTACK_CHARGE_URL, {
-            method: 'POST',
-            headers: {
-                // CRITICAL FIX 7: Use the key returned by the guard function
-                'Authorization': `Bearer ${paystackSecretKey}`, 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(chargeData)
-        });
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${paystackSecretKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(chargeData),
+      });
 
-        const chargeDataResponse = await chargeResponse.json();
+      const chargeResult = await chargeResponse.json();
+      
+      console.log("Paystack M-Pesa charge response:", chargeResult);
 
-        if (chargeResponse.ok && chargeDataResponse.status === true) {
-            console.log(`[MPESA Success] Reference: ${reference}. Charge initialized.`);
-            
-            // Return the reference and status to the frontend for polling/verification
-            return res.status(200).json({
-                success: true,
-                message: 'M-Pesa push sent successfully. Complete the transaction on your phone.',
-                reference: chargeDataResponse.data.reference,
-                status: chargeDataResponse.data.status // Should be 'pending' or similar
-            });
-        } else {
-            // Log the actual error from Paystack
-            const errorMessage = chargeDataResponse.message || 'Unknown Paystack M-Pesa API rejection.';
-            console.error('[CRITICAL MPESA API ERROR]', errorMessage, chargeDataResponse.data);
-            
-            return res.status(400).json({
-                success: false,
-                message: `M-Pesa Initialization Error: ${errorMessage}`, 
-                details: chargeDataResponse
-            });
+      if (chargeResult.status && chargeResult.data) {
+        // Create payment record with pending status
+        try {
+          await storage.createPayment({
+            sessionId,
+            paystackReference: reference,
+            amount: amountInCents,
+            status: "pending"
+          });
+        } catch (paymentError) {
+          console.error("Error creating payment record:", paymentError);
+          // Continue anyway, we can create it later during verification
         }
-        
+
+        res.json({ 
+          success: true, 
+          reference,
+          status: 'pending',
+          message: chargeResult.data.display_text || 'Check your phone for M-Pesa prompt',
+          data: chargeResult.data
+        });
+      } else {
+        console.error("M-Pesa initialization failed:", chargeResult);
+        res.status(400).json({ 
+          success: false, 
+          message: chargeResult.message || "Failed to initialize M-Pesa payment"
+        });
+      }
     } catch (error) {
       console.error("M-Pesa initialization error:", error);
-      res.status(500).json({ message: "Failed to initialize M-Pesa payment" });
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to initialize M-Pesa payment" 
+      });
+    }
+  });
+
+// =================================================================================
+// Paystack webhook for secure payment notifications
+// =================================================================================
+  app.post("/api/payments/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
+    try {
+      const paystackSecretKey = getPaystackSecretKey(res); // Read key reliably
+      if (!paystackSecretKey) return; 
+
+      // Verify webhook signature
+      const hash = crypto.createHmac('sha512', paystackSecretKey).update(req.body).digest('hex');
+      const signature = req.headers['x-paystack-signature'];
+      
+      if (hash !== signature) {
+        console.error("Invalid webhook signature");
+        return res.status(400).json({ message: "Invalid signature" });
+      }
+
+      const event = JSON.parse(req.body.toString());
+
+      if (event.event === 'charge.success') {
+        const { reference, amount, currency, status } = event.data;
+        
+        // Flexible payment verification for webhook
+        const metadata = event.data.metadata || {};
+        
+        // Expected amounts: $8 USD = 800 cents, ₦8,000 = 800000 kobo, KES 1,000 = 100000 cents
+        const validAmounts = {
+          'USD': 800,
+          'NGN': 800000,
+          'KES': 100000 // KES 1,000 in cents (for M-Pesa)
+        };
+        
+        const expectedAmount = validAmounts[currency as keyof typeof validAmounts];
+        if (expectedAmount && Math.abs(amount - expectedAmount) <= expectedAmount * 0.05 && status === "success") {
+          // Get session ID from metadata (preferred) or fallback to reference parsing
+          let sessionId = metadata.sessionId;
+          if (!sessionId && reference.includes('_')) {
+            const parts = reference.split('_');
+            sessionId = parts.length >= 2 ? parts[1] : null;
+          }
+          
+          if (sessionId) {
+            // Create or update payment record
+            let payment = await storage.getPaymentByReference(reference);
+            if (!payment) {
+              payment = await storage.createPayment({
+                sessionId,
+                paystackReference: reference,
+                amount,
+                status: "success"
+              });
+            } else {
+              await storage.updatePayment(payment.id, { status: "success" });
+            }
+            
+            // Update test session payment status
+            const session = await storage.getTestSession(payment.sessionId);
+            if (session) {
+              await storage.updateTestSession(session.id, { 
+                paymentStatus: "completed",
+                status: "in_progress" 
+              });
+            }
+            
+          }
+        }
+      }
+
+      res.status(200).json({ message: "Webhook processed" });
+    } catch (error) {
+      console.error("Webhook processing error:", error);
+      res.status(500).json({ message: "Webhook processing failed" });
+    }
+  });
+
+// =================================================================================
+// Submit test and calculate scores
+// =================================================================================
+  app.post("/api/test-sessions/:id/submit", async (req, res) => {
+    try {
+      const session = await storage.getTestSession(req.params.id);
+      if (!session) {
+        return res.status(404).json({ message: "Test session not found" });
+      }
+      
+      // Validate session access token
+      const sessionToken = req.headers['x-session-token'] as string;
+      if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
+        return res.status(401).json({ message: "Invalid or missing session token" });
+      }
+      
+      // Verify payment is completed before allowing submission
+      if (session.paymentStatus !== "completed") {
+        return res.status(403).json({ 
+          message: "Payment required to submit test",
+          paymentStatus: session.paymentStatus 
+        });
+      }
+
+      const answers = await storage.getTestAnswers(session.id);
+      
+      // IELTS-Style Comprehensive Scoring System
+      const correctAnswers = {
+        // Reading Section Answers
+        reading_1: 'b', reading_2: 'b', reading_3: 'true', reading_4: 'intermittent',
+        reading_5: 'b', reading_6: 'c', reading_7: 'false', reading_8: 'surgery simulations, ancient civilizations',
+        reading_9: 'b', reading_10: 'energy-storage,ai-learning,vr-surgery,grid-infrastructure',
+        // Professional Reading Questions (11-15)
+        reading_11: 'b', reading_12: 'true', reading_13: 'human connection', 
+        reading_14: 'denmark, germany', reading_15: 'b',
+        
+        // Listening Section Answers  
+        listening_1: 'b', listening_2: 'b', listening_3: 'a', listening_4: '250',
+        listening_5: '5', listening_6: 'ai integration, voice control',
+        // Professional Listening Questions (7-10)
+        listening_7: 'a', listening_8: '12', listening_9: 'd', listening_10: 'multilingual workforce, tech hubs'
+      };
+
+      const sectionScores = {
+        reading: 0,
+        listening: 0,
+        writing: 0,
+        speaking: 0
+      };
+
+      const sectionCounts = {
+        reading: 0,
+        listening: 0,
+        writing: 0,
+        speaking: 0
+      };
+
+      const sectionCorrect = {
+        reading: 0,
+        listening: 0,
+        writing: 0,
+        speaking: 0
+      };
+
+      // Evaluate answers against correct answers
+      answers.forEach(answer => {
+        if (answer.section in sectionScores && answer.answer && answer.answer !== '') {
+          const section = answer.section as keyof typeof sectionScores;
+          sectionCounts[section]++;
+          
+          const questionId = answer.questionId;
+          const userAnswer = (typeof answer.answer === 'string' ? answer.answer.toLowerCase().trim() : String(answer.answer || '').toLowerCase().trim()) || '';
+          const correctAnswer = correctAnswers[questionId as keyof typeof correctAnswers];
+          
+          let isCorrect = false;
+          
+          if (section === 'reading' || section === 'listening') {
+            if (typeof correctAnswer === 'string') {
+              const correctAnswerLower = correctAnswer.toLowerCase().trim();
+              
+              // Handle different question types
+              if (questionId.includes('fill') || questionId.includes('short')) {
+                // For fill-in-the-blank and short answers, check if key words are present
+                const correctWords = correctAnswerLower.split(/[,\s]+/).filter(w => w.length > 2);
+                isCorrect = correctWords.some(word => userAnswer.includes(word)) || userAnswer === correctAnswerLower;
+              } else if (questionId.includes('matching')) {
+                // For matching questions, check if most answers are correct
+                const userSelections = userAnswer.split(',').map(s => s.trim()).filter(Boolean).sort();
+                const correctSelections = correctAnswerLower.split(',').map(s => s.trim()).filter(Boolean).sort();
+                const matches = userSelections.filter((sel: string) => correctSelections.includes(sel)).length;
+                isCorrect = matches >= correctSelections.length * 0.6; // Lower threshold to 60%
+              } else {
+                // Multiple choice and true/false - exact match
+                isCorrect = userAnswer === correctAnswerLower;
+              }
+            }
+          } else if (section === 'writing') {
+            // Writing scoring based on word count and content quality
+            const wordCount = userAnswer.split(/\s+/).filter(Boolean).length;
+            let score = 0;
+            
+            if (questionId === 'writing_1') {
+              // Task 1: Formal Report (150+ words)
+              if (wordCount >= 150) score += 30;
+              else if (wordCount >= 100) score += 20;
+              else score += 10;
+              
+              // Content analysis (simplified)
+              if (userAnswer.includes('executive') || userAnswer.includes('summary')) score += 15;
+              if (userAnswer.includes('recommendation') || userAnswer.includes('conclude')) score += 15;
+              if (userAnswer.includes('benefit') || userAnswer.includes('cost')) score += 15;
+              if (userAnswer.includes('employee') || userAnswer.includes('wellness')) score += 15;
+              if (userAnswer.includes('implement') || userAnswer.includes('program')) score += 10;
+              
+            } else if (questionId === 'writing_2') {
+              // Task 2: Argumentative Essay (250+ words)
+              if (wordCount >= 250) score += 30;
+              else if (wordCount >= 200) score += 25;
+              else if (wordCount >= 150) score += 15;
+              else score += 5;
+              
+              // Content analysis for argumentative essay
+              if (userAnswer.includes('agree') || userAnswer.includes('disagree')) score += 15;
+              if (userAnswer.includes('example') || userAnswer.includes('instance')) score += 15;
+              if (userAnswer.includes('advantage') || userAnswer.includes('benefit')) score += 10;
+              if (userAnswer.includes('disadvantage') || userAnswer.includes('problem')) score += 10;
+              if (userAnswer.includes('conclusion') || userAnswer.includes('summary')) score += 10;
+              if (userAnswer.includes('society') || userAnswer.includes('communication')) score += 10;
+            }
+            
+            sectionScores[section] += Math.min(score, 100);
+            return;
+            
+          } else if (section === 'speaking') {
+            // Speaking scoring based on audio data presence and length
+            if (answer.answer && typeof answer.answer === 'object' && 'audioData' in answer.answer) {
+              const audioData = answer.answer as { audioData?: string; size?: number; recordedAt?: string };
+              const audioSize = audioData.size || 0;
+              const recordedAt = audioData.recordedAt;
+              
+              let score = 60; // Base score for providing audio
+              
+              // Score based on audio file size (proxy for length and quality)
+              if (audioSize > 100000) score += 20; // Good length recording
+              else if (audioSize > 50000) score += 15;
+              else if (audioSize > 20000) score += 10;
+              else score += 5;
+              
+              // Bonus for completing within reasonable time
+              if (recordedAt) score += 15;
+              
+              sectionScores[section] += Math.min(score, 100);
+              return;
+            }
+            
+            // Default score if no audio provided
+            sectionScores[section] += 40;
+            return;
+          }
+          
+          if (isCorrect) {
+            sectionCorrect[section]++;
+          }
+        }
+      });
+
+      // Enhanced scoring system with performance-based adjustments
+      Object.keys(sectionCounts).forEach(section => {
+        const key = section as keyof typeof sectionScores;
+        
+        if (key === 'reading' || key === 'listening') {
+          if (sectionCounts[key] > 0) {
+            const accuracy = sectionCorrect[key] / sectionCounts[key];
+            
+            // Enhanced scoring algorithm for better performance assessment
+            let score = 0;
+            if (accuracy >= 0.95) score = 95; // Near perfect
+            else if (accuracy >= 0.90) score = 85; // Excellent
+            else if (accuracy >= 0.80) score = 75; // Very good
+            else if (accuracy >= 0.70) score = 65; // Good
+            else if (accuracy >= 0.60) score = 55; // Satisfactory
+            else if (accuracy >= 0.50) score = 45; // Needs improvement
+            else if (accuracy >= 0.40) score = 35; // Poor
+            else score = 25; // Very poor
+            
+            // Add bonus points for consistent performance
+            if (sectionCounts[key] >= 10 && accuracy >= 0.75) {
+              score += 5; // Bonus for sustained high performance
+            }
+            
+            sectionScores[key] = Math.min(100, score);
+          } else {
+            sectionScores[key] = 0; // Zero score for no answers instead of 30
+          }
+        } else if (key === 'writing' || key === 'speaking') {
+          // Already calculated above with content-based scoring
+          if (sectionCounts[key] > 0) {
+            let avgScore = Math.round(sectionScores[key] / sectionCounts[key]);
+            
+            // Performance adjustment for writing/speaking consistency
+            if (sectionCounts[key] >= 2) {
+              // Bonus for completing all tasks
+              avgScore += 5;
+            }
+            
+            sectionScores[key] = Math.min(100, avgScore);
+          } else {
+            sectionScores[key] = 0; // Zero score for no answers instead of 30
+          }
+        }
+      });
+
+      const totalScore = Math.round(
+        (sectionScores.reading + sectionScores.listening + sectionScores.writing + sectionScores.speaking) / 4
+      );
+
+      // Generate certificate ID
+      const certificateId = `EP${new Date().getFullYear()}-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`;
+
+      // Update session with scores
+      const updatedSession = await storage.updateTestSession(session.id, {
+        status: "completed",
+        completedAt: new Date(),
+        totalScore,
+        readingScore: sectionScores.reading,
+        listeningScore: sectionScores.listening,
+        writingScore: sectionScores.writing,
+        speakingScore: sectionScores.speaking,
+        certificateId
+      });
+
+      // Allow access to results page - token will expire naturally in 2 hours
+
+      res.json({ 
+        session: updatedSession,
+        scores: {
+          total: totalScore,
+          reading: sectionScores.reading,
+          listening: sectionScores.listening,
+          writing: sectionScores.writing,
+          speaking: sectionScores.speaking
+        },
+        certificateId
+      });
+    } catch (error) {
+      console.error("Submit test error:", error);
+      res.status(500).json({ message: "Failed to submit test" });
     }
   });
 
 
-  // Start Express server
-  return createServer(app);
+  const httpServer = createServer(app);
+  return httpServer;
 }
