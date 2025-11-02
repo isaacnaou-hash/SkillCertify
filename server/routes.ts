@@ -11,18 +11,16 @@ import { z } from "zod";
 import fetch from 'node-fetch';
 
 // =========================================================================
-// 🔥 CRITICAL FIX: Defined Paystack Configuration outside all handlers
-// NOTE: We keep this definition, but the guard function will now read 
-// directly from process.env every time to avoid module caching issues.
+// 🔥 FINAL CONFIGURATION: Remove module-level key variable to force runtime lookup.
+// The base URLs remain constant.
 // =========================================================================
 const PAYSTACK_INIT_URL = 'https://api.paystack.co/transaction/initialize';
 const PAYSTACK_CHARGE_URL = 'https://api.paystack.co/charge';
 const PAYSTACK_VERIFY_BASE_URL = 'https://api.paystack.co/transaction/verify/';
 
-// Guard function to ensure keys are present before execution
-// This function now reads the key directly from process.env every time.
+// Guard function now reads the key and returns it, or sends the error response.
 function requirePaystackConfig(res: express.Response): string | false {
-    // 💡 FINAL FIX: Read directly from the environment inside the function
+    // 💡 FINAL FIX: Reading directly from process.env inside the function
     const key = process.env.PAYSTACK_SECRET_KEY;
     const keyLength = key ? key.length : 0;
     
@@ -107,7 +105,7 @@ async function validateUserAuthToken(token: string | undefined): Promise<string 
   }
 }
 
-// --- CRITICAL PAYMENT CHECK (Renamed and simplified) ---
+// --- CRITICAL PAYMENT CHECK (Startup Check) ---
 function checkPaymentConfiguration() {
     const key = process.env.PAYSTACK_SECRET_KEY;
   if (key) {
