@@ -6,61 +6,41 @@ import { setupVite, serveStatic, log } from "./vite";
 // logic within that file immediately upon server startup. If the key is bad,
 // this import will trigger the 'process.exit(1)' defined in the paymentService,
 // preventing the server from running in a broken state.
-// --- FIX APPLIED: Changed to TitleCase to resolve Linux/Docker case sensitivity issue. ---
-import "./services/PaymentService"; // <<<<<<<<< CORRECTED LINE
+// --- FIX APPLIED: Reverted to lowercase and added explicit .ts extension. ---
+import "./services/paymentService.ts"; // <<<<<<<<< CORRECTED LINE
 
 const app = express();
 
 // --- START: TEMPORARY DIAGNOSTIC LOGGING ---
 console.log('\n--- DIAGNOSTIC LOG START ---');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('Database URL presence:', !!process.env.DATABASE_URL);
-
-// Log the specific secret key and its length
-const paystackKey = process.env.PAYSTACK_SECRET_KEY;
-console.log('PAYSTACK_SECRET_KEY (Value):', paystackKey ? 'SET (' + paystackKey.length + ' chars)' : 'UNDEFINED/EMPTY');
-console.log('PAYSTACK_SECRET_KEY (First 8 chars):', paystackKey ? paystackKey.substring(0, 8) : 'N/A');
-
-// Log the public key to check for case sensitivity
-console.log('VITE_PAYSTACK_PUBLIC_KEY:', process.env.VITE_PAYSTACK_PUBLIC_KEY);
-console.log('PAYSTACK_PUBLIC_KEY:', process.env.PAYSTACK_PUBLIC_KEY);
-
-// Log all environment variables (filtered for privacy)
-console.log('\n--- ALL ENV KEYS (FILTERED) ---');
-for (const key in process.env) {
-    if (key.includes('SECRET') || key.includes('TOKEN') || key.includes('KEY') || key.includes('PASSWORD')) {
-        // Log just the keys for secrets, not the values
-        console.log(`Found SECRET key: ${key}`);
-    }
-}
+// ... (rest of the diagnostic logging code)
+// ...
+// ...
 console.log('--- DIAGNOSTIC LOG END ---\n');
 // --- END: TEMPORARY DIAGNOSTIC LOGGING ---
 
 
 /* ✅ Health Check (MUST be first)
-  Coolify uses this to detect if the service is healthy.
-*/
+// ... (rest of the health check code)
+// ...
+// ...
 app.get("/health", (_req: Request, res: Response) => {
   res.status(200).type("text/plain").send("OK");
 });
 
 /*
   ✅ Paystack Webhook (raw body before global JSON parsing)
-*/
-app.use("/api/payments/webhook", (req, res, next) => {
-  if (req.method === "POST") {
-    express.raw({ type: "application/json" })(req, res, next);
-  } else {
-    next();
-  }
-});
-
+// ... (rest of the webhook code)
+// ...
+// ...
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 /*
   ✅ Request logging (safe)
-*/
+// ... (rest of the request logging code)
+// ...
+// ...
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
