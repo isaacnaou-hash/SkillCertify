@@ -4,7 +4,13 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "dist/server",
-    "noEmit": false
+    "noEmit": false,
+    
+    // --- THIS IS THE FIX ---
+    // This line overrides the setting from your main tsconfig.json
+    // and resolves the TS5096 build error.
+    "allowImportingTsExtensions": false
   },
   "include": ["server"]
 }
+
