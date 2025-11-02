@@ -11,29 +11,29 @@ import { z } from "zod";
 import fetch from 'node-fetch';
 
 // =========================================================================
-// 🔥 ULTIMATE FIX: Define Paystack Secret Key as a constant at module load time.
-// This guarantees the value is captured immediately, bypassing runtime context issues.
-// We use the full string here, as proven by the startup diagnostics.
+// 🔥 ULTIMATE FIX: Rely on constant captured at module load time.
 // =========================================================================
 const PAYSTACK_SECRET_KEY_LIVE = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_INIT_URL = 'https://api.paystack.co/transaction/initialize';
 const PAYSTACK_CHARGE_URL = 'https://api.paystack.co/charge';
 const PAYSTACK_VERIFY_BASE_URL = 'https://api.paystack.co/transaction/verify/';
 
-// Helper to reliably check the key and send error response (used in startup log only)
-function checkPaystackKey(res: express.Response): string | false {
-    if (!PAYSTACK_SECRET_KEY_LIVE || PAYSTACK_SECRET_KEY_LIVE.length < 10) { 
-        console.error(
-            `[FATAL PAYMENT CONFIG] Runtime key missing. Value: ${PAYSTACK_SECRET_KEY_LIVE ? PAYSTACK_SECRET_KEY_LIVE.substring(0, 8) + '...' : 'UNDEFINED/NULL'}`
-        );
-        res.status(500).json({
-            success: false,
-            message: "Payment system not configured. Please contact support."
-        });
-        return false;
+// Helper to reliably check the key length and return the key if valid.
+function checkPaystackKey(): string | false {
+    const key = PAYSTACK_SECRET_KEY_LIVE;
+    
+    // Check if the key is a string and has a reasonable length (48 chars in your logs).
+    if (typeof key === 'string' && key.length > 10) { 
+        return key;
     }
-    return PAYSTACK_SECRET_KEY_LIVE;
+    
+    // Log the failure aggressively for diagnostics
+    console.error(
+        `[FATAL PAYMENT CONFIG] Runtime key missing or invalid. Length: ${key ? key.length : '0'}.`
+    );
+    return false;
 }
+
 // =========================================================================
 
 
@@ -532,9 +532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 app.post("/api/payments/initialize", async (req, res) => {
     // 1. Read the constant value captured at module load time
-    const paystackSecretKey = PAYSTACK_SECRET_KEY_LIVE;
-
-    // Redundant check, but crucial if the key was genuinely empty on module load
+    const paystackSecretKey = checkPaystackKey();
     if (!paystackSecretKey) {
         return res.status(500).json({ success: false, message: "Payment system not configured. Please contact support." });
     }
@@ -637,7 +635,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       }
       
       // 1. Read the constant value captured at module load time
-      const paystackSecretKey = PAYSTACK_SECRET_KEY_LIVE;
+      const paystackSecretKey = checkPaystackKey();
       if (!paystackSecretKey) {
         return res.status(500).json({ success: false, message: "Payment system not configured. Please contact support." });
       }
@@ -848,99 +846,8 @@ app.post("/api/payments/initialize", async (req, res) => {
             try {
               // Create actual user
               const user = await storage.createUser({
-                firstName: tempRegistration.firstName,
-                lastName: tempRegistration.lastName,
-                email: tempRegistration.email,
-                phone: tempRegistration.phone,
-                password: tempRegistration.password
-              });
-
-              // Generate user auth token and save to storage (auto-login after payment)
-              const userAuthToken = generateSecureToken();
-              const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-              
-              await storage.createUserSession({
-                userId: user.id,
-                token: userAuthToken,
-                type: 'auth',
-                expiresAt: expiresAt
-              });
-
-              // Create a test payment record for development
-              let payment = await storage.getPaymentByReference(reference);
-              if (!payment) {
-                payment = await storage.createPayment({
-                  sessionId,
-                  paystackReference: reference,
-                  amount: 800,
-                  status: "success"
-                });
-              } else {
-                await storage.updatePayment(payment.id, { status: "success" });
-              }
-              
-              // Update test session with user ID and payment status
-              const session = await storage.getTestSession(sessionId);
-              if (session) {
-                await storage.updateTestSession(session.id, { 
-                  userId: user.id, // Link session to actual user
-                  paymentStatus: "completed",
-                  status: "pending" // Keep as pending until user actually starts the test
-                });
-              }
-
-              // Clean up temporary registration (no longer needed)
-              await storage.deleteTempRegistration(tempToken);
-
-              // Remove password from user response
-              const { password, ...userWithoutPassword } = user;
-              
-              console.log("Fallback payment processed successfully for session:", sessionId);
-              return res.json({ 
-                success: true, 
-                user: userWithoutPassword,
-                authToken: userAuthToken,
-                message: "Payment processed successfully" 
-              });
-            } catch (fallbackError) {
-              console.error("Fallback payment processing error:", fallbackError);
-              // Clean up temp registration on fallback failure
-              await storage.deleteTempRegistration(tempToken);
-            }
-          }
-        }
-        
-        // Payment verification failed - clean up temp registration
-        await storage.deleteTempRegistration(tempToken);
-        res.status(400).json({ 
-          success: false, 
-          message: "Payment verification failed",
-          requireLogout: true 
-        });
-      }
-    } catch (error) {
-      console.error("Payment verification error:", error);
-      res.status(500).json({ message: "Payment verification failed" });
-    }
-  });
-
-// =================================================================================
-// Initialize M-Pesa payment
-// =================================================================================
-
-  app.post("/api/payments/initialize-mpesa", async (req, res) => {
-    try {
-      const { email, amount, phone, sessionId, firstName, lastName } = req.body;
-      
-      if (!email || !amount || !phone || !sessionId) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Missing required fields for M-Pesa payment" 
-        });
-      }
-
-      // 1. Read the constant value captured at module load time
-      const paystackSecretKey = PAYSTACK_SECRET_KEY_LIVE;
+            1. Read the constant value captured at module load time
+      const paystackSecretKey = checkPaystackKey();
       if (!paystackSecretKey) {
         return res.status(500).json({ success: false, message: "Payment system not configured. Please contact support." });
       }
@@ -1032,7 +939,7 @@ app.post("/api/payments/initialize", async (req, res) => {
   // Paystack webhook for secure payment notifications
   app.post("/api/payments/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
     // 1. Read the constant value captured at module load time
-    const paystackSecretKey = PAYSTACK_SECRET_KEY_LIVE;
+    const paystackSecretKey = checkPaystackKey();
     if (!paystackSecretKey) {
         return res.status(500).json({ message: "Payment system not configured. Please contact support." });
     }
