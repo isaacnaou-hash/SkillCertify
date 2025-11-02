@@ -12,6 +12,7 @@ import fetch from 'node-fetch';
 
 // =========================================================================
 // 🔥 CRITICAL FIX: Defined Paystack Configuration outside all handlers
+// (Keep this constant structure, as it's technically correct for module caching)
 // =========================================================================
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_INIT_URL = 'https://api.paystack.co/transaction/initialize';
@@ -20,8 +21,15 @@ const PAYSTACK_VERIFY_BASE_URL = 'https://api.paystack.co/transaction/verify/';
 
 // Guard function to ensure keys are present before execution
 function requirePaystackConfig(res: express.Response) {
-    if (!PAYSTACK_SECRET_KEY || PAYSTACK_SECRET_KEY.length < 10) {
-        console.error("CRITICAL: PAYSTACK_SECRET_KEY is missing or invalid in server environment.");
+    const key = PAYSTACK_SECRET_KEY;
+    const keyLength = key ? key.length : 0;
+    
+    // Check if the key is missing or suspiciously short
+    if (!key || keyLength < 10) { 
+        // CRITICAL DEBUG LOG: Log exactly what the server sees at the moment of failure
+        console.error(
+            `[FATAL PAYMENT CONFIG] Key check failed! Value: ${key ? key.substring(0, 8) + '...' : 'UNDEFINED/NULL'} | Length: ${keyLength}`
+        );
         res.status(500).json({
             success: false,
             message: "Payment system not configured. Please contact support." // User-facing error
@@ -97,7 +105,7 @@ async function validateUserAuthToken(token: string | undefined): Promise<string 
   }
 }
 
-// --- NEW CRITICAL PAYMENT CHECK (Renamed and simplified) ---
+// --- CRITICAL PAYMENT CHECK (Renamed and simplified) ---
 function checkPaymentConfiguration() {
   if (PAYSTACK_SECRET_KEY) {
     console.log("CRITICAL CHECK PASSED: PAYSTACK_SECRET_KEY is available (length:", PAYSTACK_SECRET_KEY.length, ")");
@@ -654,7 +662,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       // Verify payment with Paystack
       
       // --- DEBUG LOG ADDED HERE ---
-      console.log(`[VERIFY DEBUG] paystackSecretKey inside handler: ${PAYSTACK_SECRET_KEY ? 'SET (' + PAYSTACK_SECRET_KEY.length + ' chars)' : 'MISSING/EMPTY'}`);
+      console.log(`[VERIFY DEBUG] paystackSecretKey used in fetch: ${PAYSTACK_SECRET_KEY ? 'SET (' + PAYSTACK_SECRET_KEY.length + ' chars)' : 'MISSING/EMPTY'}`);
       // ----------------------------
 
       // Use global fetch (Node 18+) or imported fetch if you enabled node-fetch
