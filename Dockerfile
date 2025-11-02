@@ -1,12 +1,9 @@
-# --- Stage 1: Builder (Compiles the app and embeds the secret) ---
+# --- Stage 1: Builder (Compiles the app) ---
 FROM node:20-alpine AS builder
-
-# Argument for the secret key (passed from your deploy system)
-ARG PAYSTACK_SECRET_KEY_ARG
 
 WORKDIR /app
 
-# Install native dependencies needed for packages like 'canvas'
+# Install native dependencies needed for compilation
 RUN apk add --no-cache \
     python3 \
     make \
@@ -18,26 +15,23 @@ RUN apk add --no-cache \
     giflib-dev \
     pixman-dev
 
-# Grab package files and install all dependencies
+# Install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy all source code
+# Copy source code
 COPY . .
 
-# Set the environment key for the build script to access
-ENV PAYSTACK_SECRET_KEY=$PAYSTACK_SECRET_KEY_ARG
-
-# Build everything (frontend, backend, embedding the secret key)
+# Build everything (ESBuild will read secrets at runtime if not defined here)
 RUN npm run build
 
 
-# --- Stage 2: Runner (Minimal Image for Production) ---
+# --- Stage 2: Runner (Injects Secrets at Runtime) ---
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install runtime libraries for native modules
+# Install runtime libraries
 RUN apk add --no-cache \
     cairo \
     jpeg \
@@ -48,8 +42,6 @@ RUN apk add --no-cache \
 # Copy necessary files from the build stage
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-
-# Copy the compiled application code
 COPY --from=builder /app/dist ./dist
 
 # Set runtime environment variables
@@ -58,5 +50,5 @@ ENV PORT=5000
 
 EXPOSE 5000
 
-# Go time! Start the server
+# Start the server. Secrets are injected by Dokploy here.
 CMD ["node", "dist/server/index.js"]
