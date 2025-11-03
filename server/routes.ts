@@ -96,7 +96,7 @@ async function validateUserAuthToken(token: string): Promise<string | null> {
     
     // Check token expiration
     const now = new Date();
-  t (session.expiresAt < now) {
+  if (session.expiresAt < now) {
       await storage.deleteUserSession(token);
       return null;
     }
