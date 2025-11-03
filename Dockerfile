@@ -64,4 +64,5 @@ ENV NODE_ENV=production
 ENV PORT=5000
 
 # Start the application
-CMD ["node", "dist/index.js"]
+# --- FIX: Pointed to the correct build output path based on your build log ---
+CMD ["node", "dist/server/index.js"]
