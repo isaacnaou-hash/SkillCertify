@@ -1,10 +1,11 @@
 # =========================================================
-# 1️⃣ BUILD STAGE
+# ✅ SINGLE-STAGE PRODUCTION BUILD (full-size, stable)
 # =========================================================
-FROM node:20-alpine AS builder
+FROM node:20-alpine
 
 WORKDIR /app
 
+# Install full build toolchain for node-canvas and Vite
 RUN apk add --no-cache \
   python3 \
   make \
@@ -14,36 +15,31 @@ RUN apk add --no-cache \
   jpeg-dev \
   pango-dev \
   giflib-dev \
-  pixman-dev
+  pixman-dev \
+  bash
 
+# Copy package files
 COPY package*.json ./
+
+# Install all dependencies (including devDependencies for build)
 RUN npm ci
 
+# Copy source code
 COPY . .
+
+# Build frontend + backend
 RUN npm run build
 
-# =========================================================
-# 2️⃣ RUNTIME STAGE
-# =========================================================
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-RUN apk add --no-cache \
-  cairo \
-  jpeg \
-  pango \
-  giflib \
-  pixman
-
-COPY package*.json ./
-RUN npm ci --omit=dev
-
-COPY --from=builder /app/dist ./dist
-
+# Expose your app’s port (Dokploy auto-detects this)
 EXPOSE 5000
 
+# Environment configuration
 ENV NODE_ENV=production
 ENV PORT=5000
 
+# Optional healthcheck for Dokploy (auto waits until live)
+HEALTHCHECK --interval=30s --timeout=10s --retries=5 \
+  CMD wget -qO- http://localhost:5000/ || exit 1
+
+# Run your compiled server
 CMD ["node", "dist/server/index.js"]
