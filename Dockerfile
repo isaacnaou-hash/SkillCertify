@@ -1,12 +1,9 @@
-# --- Stage 1: Builder (Compiles the app) ---
-# This stage builds your app and installs all dependencies
+# Build stage
 FROM node:20-alpine AS builder
-
-# We NO LONGER need the VITE_PAYSTACK_PUBLIC_KEY_ARG here
 
 WORKDIR /app
 
-# Install native dependencies needed for 'canvas'
+# Install build dependencies for canvas package
 RUN apk add --no-cache \
     python3 \
     make \
@@ -18,56 +15,53 @@ RUN apk add --no-cache \
     giflib-dev \
     pixman-dev
 
-# Install ALL npm dependencies (dev + prod)
+# Copy package files
 COPY package*.json ./
-RUN npm install
 
-# Copy the rest of your source code
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
+
+# Copy source code
 COPY . .
 
-# We NO LONGER need to set the ENV for the build script
-
-# Run the build script
+# Build the application (builds Vite frontend and bundles backend)
 RUN npm run build
 
-
-# --- Stage 2: Runner (This is what Dokploy actually runs) ---
-# This stage is a small, clean image for production
-FROM node:20-alpine AS runner
+# Production stage
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Install only the RUNTIME libraries needed for 'canvas'
+# Install runtime and build dependencies for canvas package
 RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    pkgconf \
     cairo \
+    cairo-dev \
     jpeg \
+    jpeg-dev \
     pango \
+    pango-dev \
     giflib \
-    pixman
+    giflib-dev \
+    pixman \
+    pixman-dev
 
-# Copy package files (for reference)
-COPY --from=builder /app/package*.json ./
+# Install production dependencies only
+COPY package*.json ./
+RUN npm ci --omit=dev
 
-# COPY the already-built node_modules from the builder stage
-COPY --from=builder /app/node_modules ./node_modules
-
-# Copy the compiled application code from Stage 1
+# Copy built application from builder (includes backend and frontend in dist/public)
 COPY --from=builder /app/dist ./dist
 
-# Set the runtime environment
+# Expose port (Coolify will map this)
+EXPOSE 5000
+
+# Set NODE_ENV
 ENV NODE_ENV=production
 ENV PORT=5000
 
-#
-# ❗️ IMPORTANT ❗️
-# We still declare BOTH keys here for your SERVER to use.
-# The server will use the SECRET key for payments.
-# The server will use the PUBLIC key for the new config endpoint.
-#
-ENV PAYSTACK_SECRET_KEY="DOKPLOY_WILL_REPLACE_THIS_SECRET"
-ENV VITE_PAYSTACK_PUBLIC_KEY="DOKPLOY_WILL_REPLACE_THIS_PUBLIC_KEY"
-
-EXPOSE 5000
-
-# Start the server
-CMD ["node", "dist/server/index.js"]
+# Start the application
+CMD ["node", "dist/index.js"]
