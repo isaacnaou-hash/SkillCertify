@@ -1,68 +1,67 @@
-# Build stage
+# =========================================================
+# 1️⃣ BUILD STAGE
+# =========================================================
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies for canvas package
+# Install dependencies for canvas build
 RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    pkgconf \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    giflib-dev \
-    pixman-dev
+  python3 \
+  make \
+  g++ \
+  pkgconf \
+  cairo-dev \
+  jpeg-dev \
+  pango-dev \
+  giflib-dev \
+  pixman-dev
 
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including devDependencies for build)
+# Install all deps (including dev) for build
 RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build the application (builds Vite frontend and bundles backend)
+# ✅ Build frontend & backend separately
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+# =========================================================
+# 2️⃣ RUNTIME STAGE
+# =========================================================
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install runtime and build dependencies for canvas package
+# Runtime deps for canvas (lighter than dev libs)
 RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    pkgconf \
-    cairo \
-    cairo-dev \
-    jpeg \
-    jpeg-dev \
-    pango \
-    pango-dev \
-    giflib \
-    giflib-dev \
-    pixman \
-    pixman-dev
+  cairo \
+  jpeg \
+  pango \
+  giflib \
+  pixman
 
-# Install production dependencies only
+# Copy only package files
 COPY package*.json ./
+
+# Install *production-only* dependencies
 RUN npm ci --omit=dev
 
-# Copy built application from builder (includes backend and frontend in dist/public)
+# ✅ Copy built files from builder
 COPY --from=builder /app/dist ./dist
 
-# Expose port (Coolify will map this)
+# ✅ Ensure static assets are present
+RUN mkdir -p ./dist/public
+
+# Expose port
 EXPOSE 5000
 
-# Set NODE_ENV
+# Env setup
 ENV NODE_ENV=production
 ENV PORT=5000
 
-# Start the application
-# --- FIX: Pointed to the correct build output path based on your build log ---
+# ✅ Start the app
 CMD ["node", "dist/server/index.js"]
