@@ -451,10 +451,13 @@ s     }
       }
 
       // Check if session is resumable (paid but not completed)
-      if (session.paymentStatus !== 'completed') {
-        return res.status(403).json({s
-          message: "Session cannot be resumed - payment not completed",
-          paymentStatus: session.paymentStatus 
+      // Replace the block starting where it checks paymentStatus
+if (session.paymentStatus !== 'completed') {
+    return res.status(403).json({
+        message: "Session cannot be resumed - payment not completed",
+        paymentStatus: session.paymentStatus
+    }); // <--- ENSURE THIS CLOSING PARENTHESIS AND BRACE IS CORRECT
+} 
         });
       }
 
