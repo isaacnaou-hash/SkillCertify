@@ -96,7 +96,7 @@ async function validateUserAuthToken(token: string): Promise<string | null> {
     
     // Check token expiration
     const now = new Date();
-    if (session.expiresAt < now) {
+  t (session.expiresAt < now) {
       await storage.deleteUserSession(token);
       return null;
     }
@@ -307,7 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!authenticatedUserId) {
         return res.status(401).json({ message: "Authentication required to create test session" });
-      }
+s     }
 
       // Parse session data but enforce authenticated user ID
       const sessionData = insertTestSessionSchema.parse({
@@ -452,7 +452,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if session is resumable (paid but not completed)
       if (session.paymentStatus !== 'completed') {
-        return res.status(403).json({ 
+        return res.status(403).json({s
           message: "Session cannot be resumed - payment not completed",
           paymentStatus: session.paymentStatus 
         });
@@ -481,7 +481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json({ 
+      res.json({s
         session,
         sessionToken,
         message: "Session resumed successfully" 
@@ -751,10 +751,10 @@ app.post("/api/payments/initialize", async (req, res) => {
           if (!sessionId && reference.includes('_')) {
             const parts = reference.split('_');
             sessionId = parts.length >= 2 ? parts[1] : null;
-        _ }
+          }
           
           if (!sessionId) {
-            console.error("Could not extract session ID from payment");
+i            console.error("Could not extract session ID from payment");
             // Clean up temp registration on payment failure
             await storage.deleteTempRegistration(tempToken);
             return res.status(400).json({ 
@@ -789,11 +789,11 @@ app.post("/api/payments/initialize", async (req, res) => {
             // Create or update payment record
             let payment = await storage.getPaymentByReference(reference);
             if (!payment) {
-    _         payment = await storage.createPayment({
+              payment = await storage.createPayment({
                 sessionId,
                 paystackReference: reference,
                 amount: verifyData.data.amount,
-  s             status: "success"
+                status: "success"
               });
             } else {
               await storage.updatePayment(payment.id, { status: "success" });
@@ -822,25 +822,25 @@ app.post("/api/payments/initialize", async (req, res) => {
               payment: verifyData.data 
             });
           } catch (userCreationError) {
-s          console.error("User creation error:", userCreationError);
+            console.error("User creation error:", userCreationError);
             // Clean up temp registration on user creation failure
             await storage.deleteTempRegistration(tempToken);
-            return res.status(500).json({ 
+s            return res.status(500).json({ 
               success: false, 
               message: "Failed to create user account",
               requireLogout: true 
             });
           }
         } else if (paymentStatus === "ongoing") {
-s        // M-Pesa payment is still in progress - return pending status (keep temp registration)
+          // M-Pesa payment is still in progress - return pending status (keep temp registration)
           res.json({ 
             success: false, 
             status: 'pending',
             message: 'Payment is being processed. Please check your phone for M-Pesa prompt.',
             payment: verifyData.data 
-    s     });
+          });
         } else if (paymentStatus === "failed") {
-          // Payment genuinely failed - clean up temp registration
+f        // Payment genuinely failed - clean up temp registration
           await storage.deleteTempRegistration(tempToken);
           res.json({ 
             success: false, 
@@ -860,7 +860,7 @@ s        // M-Pesa payment is still in progress - return pending status (kee
         }
       } else {
         console.error("Payment verification failed:", verifyData);
-s        console.log("Environment:", process.env.NODE_ENV);
+        console.log("Environment:", process.env.NODE_ENV);
         console.log("Reference:", reference);
         console.log("Reference starts with EP_:", reference.startsWith('EP_'));
         
@@ -880,7 +880,7 @@ s        console.log("Environment:", process.env.NODE_ENV);
               const user = await storage.createUser({
                 firstName: tempRegistration.firstName,
                 lastName: tempRegistration.lastName,
-                email: tempRegistration.email,
+s              email: tempRegistration.email,
                 phone: tempRegistration.phone,
                 password: tempRegistration.password
               });
@@ -894,7 +894,7 @@ s              const userAuthToken = generateSecureToken();
                 token: userAuthToken,
                 type: 'auth',
                 expiresAt: expiresAt
-        _     });
+              });
 
               // Create a test payment record for development
               let payment = await storage.getPaymentByReference(reference);
@@ -907,11 +907,11 @@ s              const userAuthToken = generateSecureToken();
                 });
               } else {
                 await storage.updatePayment(payment.id, { status: "success" });
-s            }
+              }
               
               // Update test session with user ID and payment status
 s              const session = await storage.getTestSession(sessionId);
-              if (session) {
+s              if (session) {
                 await storage.updateTestSession(session.id, { 
                   userId: user.id, // Link session to actual user
                   paymentStatus: "completed",
@@ -920,7 +920,7 @@ s              const session = await storage.getTestSession(sessionId);
               }
 
               // Clean up temporary registration (no longer needed)
-s              await storage.deleteTempRegistration(tempToken);
+              await storage.deleteTempRegistration(tempToken);
 
               // Remove password from user response
               const { password, ...userWithoutPassword } = user;
@@ -935,17 +935,17 @@ s                message: "Payment processed successfully" 
             } catch (fallbackError) {
               console.error("Fallback payment processing error:", fallbackError);
               // Clean up temp registration on fallback failure
-              await storage.deleteTempRegistration(tempToken);
-  g         }
+  Two           await storage.deleteTempRegistration(tempToken);
+            }
           }
         }
-        
+       s
         // Payment verification failed - clean up temp registration
         await storage.deleteTempRegistration(tempToken);
         res.status(400).json({ 
           success: false, 
           message: "Payment verification failed",
-          requireLogout: true 
+s          requireLogout: true 
         });
       }
     } catch (error) {
@@ -956,11 +956,11 @@ s                message: "Payment processed successfully" 
 
   // Initialize M-Pesa payment
   app.post("/api/payments/initialize-mpesa", async (req, res) => {
-s    try {
+    try {
       const { email, amount, phone, sessionId, firstName, lastName } = req.body;
       
       if (!email || !amount || !phone || !sessionId) {
-        return res.status(400).json({s 
+        return res.status(400).json({s
           success: false, 
           message: "Missing required fields for M-Pesa payment" 
         });
@@ -978,15 +978,15 @@ s      const reference = `EP_MPESA_${sessionId}_${Date.now()}`;
       const chargeData = {
         email,
         amount, // Amount in kobo (KES)
-        currency: 'KES',
+s        currency: 'KES',
         mobile_money: {
-s          phone: phone.startsWith('+') ? phone : `+254${phone.replace(/^0/, '')}`, // Ensure proper format
+          phone: phone.startsWith('+') ? phone : `+254${phone.replace(/^0/, '')}`, // Ensure proper format
           provider: 'mpesa'
         },
         reference,
         metadata: {
           sessionId,
-        . testType: 'english_proficiency',
+          testType: 'english_proficiency',
 s          paymentMethod: 'mpesa',
 s          firstName,
           lastName
@@ -998,7 +998,7 @@ s          firstName,
         amount,
         phone: chargeData.mobile_money.phone,
         reference,
-        sessionId
+    G   sessionId
       });
 
       const chargeResponse = await fetch('https://api.paystack.co/charge', {
@@ -1014,7 +1014,7 @@ s          firstName,
       
       console.log("Paystack M-Pesa charge response:", chargeResult);
 
-      if (chargeResult.status && chargeResult.data) {
+S      if (chargeResult.status && chargeResult.data) {
         // Create payment record with pending status
         try {
           await storage.createPayment({
@@ -1022,31 +1022,31 @@ s          firstName,
             paystackReference: reference,
             amount: amount,
             status: "pending"
-        s });
+          });
         } catch (paymentError) {
           console.error("Error creating payment record:", paymentError);
           // Continue anyway, we can create it later during verification
         }
 
         res.json({ 
-          success: true, 
+    s     success: true, 
           reference,
           status: 'pending',
 s          message: chargeResult.data.display_text || 'Check your phone for M-Pesa prompt',
-s          data: chargeResult.data
+          data: chargeResult.data
         });
       } else {
         console.error("M-Pesa initialization failed:", chargeResult);
         res.status(400).json({ 
           success: false, 
 s          message: chargeResult.message || "Failed to initialize M-Pesa payment"
-        });
+s        });
       }
     } catch (error) {
       console.error("M-Pesa initialization error:", error);
       res.status(500).json({ 
         success: false, 
-  s     message: "Failed to initialize M-Pesa payment" 
+s        message: "Failed to initialize M-Pesa payment" 
       });
     }
   });
@@ -1059,9 +1059,9 @@ s          message: chargeResult.message || "Failed to initialize M-Pesa pa
       const paystackSecretKey = getPaystackSecretKey(res, req.path);
       if (!paystackSecretKey) return;
 
-s      // Verify webhook signature
+      // Verify webhook signature
       const hash = crypto.createHmac('sha512', paystackSecretKey).update(req.body).digest('hex');
-      const signature = req.headers['x-paystack-signature'];
+s      const signature = req.headers['x-paystack-signature'];
       
       if (hash !== signature) {
         console.error("Invalid webhook signature");
@@ -1071,8 +1071,8 @@ s      // Verify webhook signature
       const event = JSON.parse(req.body.toString());
 
       if (event.event === 'charge.success') {
-S        const { reference, amount, currency, status } = event.data;
-        
+        const { reference, amount, currency, status } = event.data;
+s        
         // Flexible payment verification for webhook
         const metadata = event.data.metadata || {};
         
@@ -1081,23 +1081,23 @@ S        const { reference, amount, currency, status } = event.data;
           'USD': 800,
           'NGN': 800000,
           'KES': 100000 // KES 1,000 in cents (for M-Pesa)
-s        };
+        };
         
         const expectedAmount = validAmounts[currency as keyof typeof validAmounts];
         if (expectedAmount && Math.abs(amount - expectedAmount) <= expectedAmount * 0.05 && status === "success") {
           // Get session ID from metadata (preferred) or fallback to reference parsing
-          let sessionId = metadata.sessionId;
-  s       if (!sessionId && reference.includes('_')) {
-            const parts = reference.split('_');
+  t       let sessionId = metadata.sessionId;
+          if (!sessionId && reference.includes('_')) {
+s            const parts = reference.split('_');
               sessionId = parts.length >= 2 ? parts[1] : null;
           }
           
           if (sessionId) {
-s            // Create or update payment record
+            // Create or update payment record
             let payment = await storage.getPaymentByReference(reference);
             if (!payment) {
               payment = await storage.createPayment({
-                sessionId,
+s                sessionId,
                 paystackReference: reference,
                 amount,
                 status: "success"
@@ -1109,7 +1109,7 @@ s            }
             // Update test session payment status
             const session = await storage.getTestSession(payment.sessionId);
             if (session) {
-              await storage.updateTestSession(session.id, {s 
+              await storage.updateTestSession(session.id, {s
                 paymentStatus: "completed",
                 status: "in_progress" 
               });
@@ -1120,10 +1120,10 @@ s            }
       }
 
       res.status(200).json({ message: "Webhook processed" });
-s    } catch (error) {
+    } catch (error) {
       console.error("Webhook processing error:", error);
-      res.status(500).json({ message: "Webhook processing failed" });
-    }
+s      res.status(500).json({ message: "Webhook processing failed" });
+s    }
   });
 
   // Submit test and calculate scores
@@ -1131,8 +1131,8 @@ s    } catch (error) {
     try {
       const session = await storage.getTestSession(req.params.id);
       if (!session) {
-        return res.status(404).json({ message: "Test session not found" });
-s      }
+      t return res.status(404).json({ message: "Test session not found" });
+      }
       
       // Validate session access token
       const sessionToken = req.headers['x-session-token'] as string;
@@ -1149,23 +1149,23 @@ s        return res.status(403).json({ 
       }
 
       const answers = await storage.getTestAnswers(session.id);
-s      
+      
       // IELTS-Style Comprehensive Scoring System
       const correctAnswers = {
         // Reading Section Answers
-        reading_1: 'b', reading_2: 'b', reading_3: 'true', reading_4: 'intermittent',
+s        reading_1: 'b', reading_2: 'b', reading_3: 'true', reading_4: 'intermittent',
         reading_5: 'b', reading_6: 'c', reading_7: 'false', reading_8: 'surgery simulations, ancient civilizations',
 s        reading_9: 'b', reading_10: 'energy-storage,ai-learning,vr-surgery,grid-infrastructure',
         // Professional Reading Questions (11-15)
-        reading_11: 'b', reading_12: 'true', reading_13: 'human connection',s 
+        reading_11: 'b', reading_12: 'true', reading_13: 'human connection', 
         reading_14: 'denmark, germany', reading_15: 'b',
-        
+  s      
         // Listening Section Answers  
         listening_1: 'b', listening_2: 'b', listening_3: 'a', listening_4: '250',
         listening_5: '5', listening_6: 'ai integration, voice control',
         // Professional Listening Questions (7-10)
-        listening_7: 'a', listening_8: '12', listening_9: 'd', listening_10: 'multilingual workforce, tech hubs'
-ss      };
+  s     listening_7: 'a', listening_8: '12', listening_9: 'd', listening_10: 'multilingual workforce, tech hubs'
+      };
 
       const sectionScores = {
         reading: 0,
@@ -1184,7 +1184,7 @@ ss      };
       const sectionCorrect = {
         reading: 0,
         listening: 0,
-        writing: 0,
+s        writing: 0,
         speaking: 0
       };
 
@@ -1195,44 +1195,43 @@ s      answers.forEach(answer => {
           sectionCounts[section]++;
           
           const questionId = answer.questionId;
-          const userAnswer = (typeof answer.answer === 'string' ? answer.answer.toLowerCase().trim() : String(answer.answer || '').toLowerCase().trim()) || '';
+s          const userAnswer = (typeof answer.answer === 'string' ? answer.answer.toLowerCase().trim() : String(answer.answer || '').toLowerCase().trim()) || '';
           const correctAnswer = correctAnswers[questionId as keyof typeof correctAnswers];
           
           let isCorrect = false;
           
           if (section === 'reading' || section === 'listening') {
-            if (typeof correctAnswer === 'string') {
+s            if (typeof correctAnswer === 'string') {
               const correctAnswerLower = correctAnswer.toLowerCase().trim();
               
               // Handle different question types
 s              if (questionId.includes('fill') || questionId.includes('short')) {
                 // For fill-in-the-blank and short answers, check if key words are present
-                const correctWords = correctAnswerLower.split(/[,\s]+/).filter(w => w.length > 2);
+s                const correctWords = correctAnswerLower.split(/[,\s]+/).filter(w => w.length > 2);
                 isCorrect = correctWords.some(word => userAnswer.includes(word)) || userAnswer === correctAnswerLower;
               } else if (questionId.includes('matching')) {
 s                // For matching questions, check if most answers are correct
-                const userSelections = userAnswer.split(',').map(s => s.trim()).filter(Boolean).sort();
+s                const userSelections = userAnswer.split(',').map(s => s.trim()).filter(Boolean).sort();
                 const correctSelections = correctAnswerLower.split(',').map(s => s.trim()).filter(Boolean).sort();
                 const matches = userSelections.filter((sel: string) => correctSelections.includes(sel)).length;
-                isCorrect = matches >= correctSelections.length * 0.6; // Lower threshold to 60%
+s                isCorrect = matches >= correctSelections.length * 0.6; // Lower threshold to 60%
               } else {
-s                // Multiple choice and true/false - exact match
-                isCorrect = userAnswer === correctAnswerLower;
-      S     }
+                // Multiple choice and true/false - exact match
+s                isCorrect = userAnswer === correctAnswerLower;
+s            }
             }
           } else if (section === 'writing') {
             // Writing scoring based on word count and content quality
-s            const wordCount = userAnswer.split(/\s+/).filter(Boolean).length;
+            const wordCount = userAnswer.split(/\s+/).filter(Boolean).length;
             let score = 0;
             
-            if (questionId === 'writing_1') {
+s            if (questionId === 'writing_1') {
               // Task 1: Formal Report (150+ words)
-s              if (wordCount >= 150) score += 30;
+              if (wordCount >= 150) score += 30;
               else if (wordCount >= 100) score += 20;
               else score += 10;
               
-      content-type: text/plain
-s           // Content analysis (simplified)
+              // Content analysis (simplified)
               if (userAnswer.includes('executive') || userAnswer.includes('summary')) score += 15;
               if (userAnswer.includes('recommendation') || userAnswer.includes('conclude')) score += 15;
               if (userAnswer.includes('benefit') || userAnswer.includes('cost')) score += 15;
@@ -1241,18 +1240,18 @@ s           // Content analysis (simplified)
               
             } else if (questionId === 'writing_2') {
               // Task 2: Argumentative Essay (250+ words)
-              if (wordCount >= 250) score += 30;
+    t         if (wordCount >= 250) score += 30;
               else if (wordCount >= 200) score += 25;
               else if (wordCount >= 150) score += 15;
               else score += 5;
               
-              // Content analysis for argumentative essay
-s              if (userAnswer.includes('agree') || userAnswer.includes('disagree')) score += 15;
+s              // Content analysis for argumentative essay
+              if (userAnswer.includes('agree') || userAnswer.includes('disagree')) score += 15;
               if (userAnswer.includes('example') || userAnswer.includes('instance')) score += 15;
               if (userAnswer.includes('advantage') || userAnswer.includes('benefit')) score += 10;
               if (userAnswer.includes('disadvantage') || userAnswer.includes('problem')) score += 10;
               if (userAnswer.includes('conclusion') || userAnswer.includes('summary')) score += 10;
-              if (userAnswer.includes('society') || userAnswer.includes('communication')) score += 10;
+s              if (userAnswer.includes('society') || userAnswer.includes('communication')) score += 10;
             }
             
             sectionScores[section] += Math.min(score, 100);
@@ -1263,30 +1262,30 @@ s              if (userAnswer.includes('agree') || userAnswer.includes('d
             if (answer.answer && typeof answer.answer === 'object' && 'audioData' in answer.answer) {
               const audioData = answer.answer as { audioData?: string; size?: number; recordedAt?: string };
               const audioSize = audioData.size || 0;
-              const recordedAt = audioData.recordedAt;
+s              const recordedAt = audioData.recordedAt;
               
               let score = 60; // Base score for providing audio
               
               // Score based on audio file size (proxy for length and quality)
-              if (audioSize > 100000) score += 20; // Good length recording
+s              if (audioSize > 100000) score += 20; // Good length recording
               else if (audioSize > 50000) score += 15;
               else if (audioSize > 20000) score += 10;
-              else score += 5;
+s              else score += 5;
               
               // Bonus for completing within reasonable time
 s              if (recordedAt) score += 15;
-              
+s              
               sectionScores[section] += Math.min(score, 100);
               return;
             }
             
             // Default score if no audio provided
-            sectionScores[section] += 40;
-      S     return;
+s            sectionScores[section] += 40;
+            return;
           }
           
           if (isCorrect) {
-            sectionCorrect[section]++;
+s            sectionCorrect[section]++;
           }
         }
       });
@@ -1298,37 +1297,37 @@ s              if (recordedAt) score += 15;
         if (key === 'reading' || key === 'listening') {
           if (sectionCounts[key] > 0) {
             const accuracy = sectionCorrect[key] / sectionCounts[key];
-            
+s            
             // Enhanced scoring algorithm for better performance assessment
             let score = 0;
             if (accuracy >= 0.95) score = 95; // Near perfect
 s            else if (accuracy >= 0.90) score = 85; // Excellent
-            else if (accuracy >= 0.80) score = 75; // Very good
+content-type: text/plain
             else if (accuracy >= 0.70) score = 65; // Good
-            else if (accuracy >= 0.60) score = 55; // Satisfactory
+s            else if (accuracy >= 0.60) score = 55; // Satisfactory
             else if (accuracy >= 0.50) score = 45; // Needs improvement
             else if (accuracy >= 0.40) score = 35; // Poor
 s            else score = 25; // Very poor
-            
+s            
             // Add bonus points for consistent performance
 s            if (sectionCounts[key] >= 10 && accuracy >= 0.75) {
               score += 5; // Bonus for sustained high performance
-    content-type: text/plain
+            }
             
-            sectionScores[key] = Math.min(100, score);
-          } else {
+          s sectionScores[key] = Math.min(100, score);
+s          } else {
             sectionScores[key] = 0; // Zero score for no answers instead of 30
           }
         } else if (key === 'writing' || key === 'speaking') {
 s          // Already calculated above with content-based scoring
-s          if (sectionCounts[key] > 0) {
+          if (sectionCounts[key] > 0) {
             let avgScore = Math.round(sectionScores[key] / sectionCounts[key]);
             
             // Performance adjustment for writing/speaking consistency
 s            if (sectionCounts[key] >= 2) {
-    s         // Bonus for completing all tasks
+s              // Bonus for completing all tasks
               avgScore += 5;
-          D }
+            }
             
             sectionScores[key] = Math.min(100, avgScore);
           } else {
@@ -1342,7 +1341,7 @@ s            if (sectionCounts[key] >= 2) {
       );
 
       // Generate certificate ID
-s      const certificateId = `EP${new Date().getFullYear()}-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`;
+      const certificateId = `EP${new Date().getFullYear()}-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`;
 
 s      // Update session with scores
       const updatedSession = await storage.updateTestSession(session.id, {
@@ -1352,26 +1351,26 @@ s      // Update session with scores
         readingScore: sectionScores.reading,
         listeningScore: sectionScores.listening,
 s        writingScore: sectionScores.writing,
-        speakingScore: sectionScores.speaking,
+s        speakingScore: sectionScores.speaking,
         certificateId
       });
 
       // Allow access to results page - token will expire naturally in 2 hours
 
       res.json({ 
-s        session: updatedSession,
+        session: updatedSession,
         scores: {
           total: totalScore,
 s          reading: sectionScores.reading,
-          listening: sectionScores.listening,
+s    S     listening: sectionScores.listening,
           writing: sectionScores.writing,
           speaking: sectionScores.speaking
         },
         certificateId
       });
     } catch (error) {
-s      console.error("Submit test error:", error);
-      res.status(500).json({ message: "Failed to submit test" });
+      console.error("Submit test error:", error);
+s      res.status(500).json({ message: "Failed to submit test" });
     }
   });
 
