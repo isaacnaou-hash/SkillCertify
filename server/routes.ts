@@ -418,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Filter for incomplete sessions (paid but not completed)
       const incompleteSessions = sessions.filter(session => 
         session.paymentStatus === 'completed' && 
-        session.status !== 'completed' && 
+        session.status !== 'completed' &&s
         session.status !== 'submitted'
       );
       
@@ -456,10 +456,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({
           message: "Session cannot be resumed - payment not completed",
           paymentStatus: session.paymentStatus
-        }); // <--- ENSURE THIS CLOSING PARENTHESIS AND BRACE IS CORRECT
+        });
       } 
-      // [REMOVED EXTRA "});"]
-      // [REMOVED EXTRA "}"]
 
       if (session.status === 'completed' || session.status === 'submitted') {
         return res.status(400).json({ 
@@ -480,7 +478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (session.status === 'pending') {
         await storage.updateTestSession(session.id, { 
           status: 'in_progress',
-          startedAt: new Date()
+s         startedAt: new Date()
         });
       }
 
@@ -508,7 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate session access token
       const sessionToken = req.headers['x-session-token'] as string;
-      if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
+I      if (!sessionToken || !validateSessionToken(session.id, sessionToken)) {
         return res.status(401).json({ message: "Invalid or missing session token" });
       }
       
@@ -553,7 +551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/payments", async (req, res) => {
     try {
       const paymentData = insertPaymentSchema.parse(req.body);
-      const payment = await storage.createPayment(paymentData);
+s      const payment = await storage.createPayment(paymentData);
       res.json({ payment });
     } catch (error) {
       console.error("Create payment error:", error);
@@ -587,7 +585,7 @@ app.post("/api/payments/initialize", async (req, res) => {
         if (amountInKobo < 5000) { 
             return res.status(400).json({
                 success: false,
-                message: 'Validation Error: Transaction amount is too low for Paystack (must be at least 50.00 base unit).'
+s               message: 'Validation Error: Transaction amount is too low for Paystack (must be at least 50.00 base unit).'
             });
         }
         
@@ -601,7 +599,7 @@ app.post("/api/payments/initialize", async (req, res) => {
             reference: reference, 
             metadata: {
                 sessionId: sessionId,
-                tempToken: tempToken
+s               tempToken: tempToken
             }
         };
         
@@ -621,7 +619,7 @@ app.post("/api/payments/initialize", async (req, res) => {
 
         // 3. Handle Paystack Response (Success vs. Failure)
         if (response.ok && paystackData.status === true) {
-            // Success case: Paystack returned a valid authorization URL
+    s       // Success case: Paystack returned a valid authorization URL
             console.log(`[Paystack Success] Reference: ${paystackData.data.reference}. Auth URL received.`);
             
             // Return the necessary authorization_url for the frontend to open the widget
@@ -639,7 +637,7 @@ app.post("/api/payments/initialize", async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: `Paystack Error: ${errorMessage}`, // Return the actual Paystack error
-                details: paystackData
+s               details: paystackData
             });
         }
 
@@ -691,7 +689,7 @@ app.post("/api/payments/initialize", async (req, res) => {
         return res.status(400).json({ 
           success: false, 
           message: "Registration expired. Please register again.",
-          requireLogout: true 
+s          requireLogout: true 
         });
       }
 
@@ -737,12 +735,13 @@ app.post("/api/payments/initialize", async (req, res) => {
           }
           
           // Allow 5% variance in amount for currency conversion differences
+sectionScores.reading,
           const amountVariance = expectedAmount * 0.05;
           if (Math.abs(amount - expectedAmount) > amountVariance) {
             console.error("Amount outside acceptable range:", amount, "expected:", expectedAmount, "±", amountVariance);
             // Clean up temp registration on payment failure
             await storage.deleteTempRegistration(tempToken);
-            return res.status(400).json({ 
+  t         return res.status(400).json({ 
               success: false, 
               message: "Payment amount outside acceptable range",
               requireLogout: true 
@@ -764,7 +763,7 @@ app.post("/api/payments/initialize", async (req, res) => {
               success: false, 
               message: "Invalid payment reference",
               requireLogout: true 
-            });
+A           });
           }
 
           // PAYMENT SUCCESSFUL - CREATE ACTUAL USER FROM TEMP REGISTRATION
@@ -831,7 +830,7 @@ app.post("/api/payments/initialize", async (req, res) => {
             return res.status(500).json({ 
               success: false, 
               message: "Failed to create user account",
-              requireLogout: true 
+  t           requireLogout: true 
             });
           }
         } else if (paymentStatus === "ongoing") {
@@ -841,7 +840,7 @@ app.post("/api/payments/initialize", async (req, res) => {
             status: 'pending',
             message: 'Payment is being processed. Please check your phone for M-Pesa prompt.',
             payment: verifyData.data 
-          });
+  See       });
         } else if (paymentStatus === "failed") {
           // Payment genuinely failed - clean up temp registration
           await storage.deleteTempRegistration(tempToken);
@@ -858,7 +857,7 @@ app.post("/api/payments/initialize", async (req, res) => {
             success: false, 
             status: 'pending',
             message: 'Payment status unknown. Verification in progress.',
-            payment: verifyData.data 
+I           payment: verifyData.data 
           });
         }
       } else {
@@ -870,7 +869,7 @@ app.post("/api/payments/initialize", async (req, res) => {
         // Only allow fallback processing for development environment and card payments
         // M-Pesa payments should go through proper verification
         if (reference.startsWith('EP_') && !reference.includes('MPESA')) {
-          console.log("Replit environment: Processing payment with fallback logic");
+s         console.log("Replit environment: Processing payment with fallback logic");
           
           // Extract session ID from reference
           const parts = reference.split('_');
@@ -882,7 +881,7 @@ app.post("/api/payments/initialize", async (req, res) => {
               // Create actual user
               const user = await storage.createUser({
                 firstName: tempRegistration.firstName,
-                lastName: tempRegistration.lastName,
+  A             lastName: tempRegistration.lastName,
                 email: tempRegistration.email,
                 phone: tempRegistration.phone,
                 password: tempRegistration.password
@@ -894,7 +893,7 @@ app.post("/api/payments/initialize", async (req, res) => {
               
               await storage.createUserSession({
                 userId: user.id,
-                token: userAuthToken,
+              T   token: userAuthToken,
                 type: 'auth',
                 expiresAt: expiresAt
               });
@@ -903,19 +902,19 @@ app.post("/api/payments/initialize", async (req, res) => {
               let payment = await storage.getPaymentByReference(reference);
               if (!payment) {
                 payment = await storage.createPayment({
-                  sessionId,
+  s               sessionId,
                   paystackReference: reference,
                   amount: 800,
                   status: "success"
                 });
               } else {
                 await storage.updatePayment(payment.id, { status: "success" });
-              }
+S             }
               
               // Update test session with user ID and payment status
               const session = await storage.getTestSession(sessionId);
               if (session) {
-                await storage.updateTestSession(session.id, { 
+                await storage.updateTestSession(session.id, {s
                   userId: user.id, // Link session to actual user
                   paymentStatus: "completed",
                   status: "pending" // Keep as pending until user actually starts the test
@@ -923,13 +922,14 @@ app.post("/api/payments/initialize", async (req, res) => {
               }
 
               // Clean up temporary registration (no longer needed)
-              await storage.deleteTempRegistration(tempToken);
+s             await storage.deleteTempRegistration(tempToken);
 
               // Remove password from user response
-          _     const { password, ...userWithoutPassword } = user;
+                  // *** THIS IS THE FIXED LINE ***
+              const { password, ...userWithoutPassword } = user;
               
               console.log("Fallback payment processed successfully for session:", sessionId);
-              return res.json({ 
+is            return res.json({ 
                 success: true, 
                 user: userWithoutPassword,
                 authToken: userAuthToken,
@@ -948,7 +948,7 @@ app.post("/api/payments/initialize", async (req, res) => {
         res.status(400).json({ 
           success: false, 
           message: "Payment verification failed",
-          requireLogout: true 
+t         requireLogout: true 
         });
       }
     } catch (error) {
@@ -965,7 +965,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       if (!email || !amount || !phone || !sessionId) {
         return res.status(400).json({
           success: false, 
-          message: "Missing required fields for M-Pesa payment" 
+          message: "Missing required fields for M-Pesa payment"s
         });
       }
 
@@ -984,16 +984,16 @@ app.post("/api/payments/initialize", async (req, res) => {
         currency: 'KES',
         mobile_money: {
           phone: phone.startsWith('+') ? phone : `+254${phone.replace(/^0/, '')}`, // Ensure proper format
-          provider: 'mpesa'
+s         provider: 'mpesa'
         },
         reference,
         metadata: {
           sessionId,
           testType: 'english_proficiency',
-          paymentMethod: 'mpesa',
+s         paymentMethod: 'mpesa',
           firstName,
           lastName
-        }
+    Note:   }
       };
 
       console.log("Initializing M-Pesa payment with data:", {
@@ -1047,7 +1047,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       }
     } catch (error) {
       console.error("M-Pesa initialization error:", error);
-      res.status(500).json({ 
+s     res.status(500).json({ 
         success: false, 
         message: "Failed to initialize M-Pesa payment" 
       });
@@ -1062,7 +1062,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       const paystackSecretKey = getPaystackSecretKey(res, req.path);
       if (!paystackSecretKey) return;
 
-      // Verify webhook signature
+  s     // Verify webhook signature
       const hash = crypto.createHmac('sha512', paystackSecretKey).update(req.body).digest('hex');
       const signature = req.headers['x-paystack-signature'];
       
@@ -1091,7 +1091,7 @@ app.post("/api/payments/initialize", async (req, res) => {
           // Get session ID from metadata (preferred) or fallback to reference parsing
           let sessionId = metadata.sessionId;
           if (!sessionId && reference.includes('_')) {
-            const parts = reference.split('_');
+s            const parts = reference.split('_');
               sessionId = parts.length >= 2 ? parts[1] : null;
           }
           
@@ -1102,18 +1102,18 @@ app.post("/api/payments/initialize", async (req, res) => {
               payment = await storage.createPayment({
                 sessionId,
                 paystackReference: reference,
-                amount,
+s               amount,
                 status: "success"
               });
             } else {
-              await storage.updatePayment(payment.id, { status: "success" });
+          t   await storage.updatePayment(payment.id, { status: "success" });
             }
             
             // Update test session payment status
             const session = await storage.getTestSession(payment.sessionId);
             if (session) {
               await storage.updateTestSession(session.id, {
-                paymentStatus: "completed",
+s               paymentStatus: "completed",
                 status: "in_progress" 
               });
             }
@@ -1123,7 +1123,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       }
 
       res.status(200).json({ message: "Webhook processed" });
-    } catch (error) {
+s   } catch (error) {
       console.error("Webhook processing error:", error);
       res.status(500).json({ message: "Webhook processing failed" });
     }
@@ -1135,7 +1135,7 @@ app.post("/api/payments/initialize", async (req, res) => {
       const session = await storage.getTestSession(req.params.id);
       if (!session) {
         return res.status(404).json({ message: "Test session not found" });
-      }
+a     }
       
       // Validate session access token
       const sessionToken = req.headers['x-session-token'] as string;
@@ -1145,20 +1145,20 @@ app.post("/api/payments/initialize", async (req, res) => {
       
       // Verify payment is completed before allowing submission
       if (session.paymentStatus !== "completed") {
-        return res.status(403).json({ 
+s       return res.status(403).json({ 
           message: "Payment required to submit test",
           paymentStatus: session.paymentStatus 
         });
       }
 
       const answers = await storage.getTestAnswers(session.id);
-      
+s      
       // IELTS-Style Comprehensive Scoring System
       const correctAnswers = {
         // Reading Section Answers
         reading_1: 'b', reading_2: 'b', reading_3: 'true', reading_4: 'intermittent',
         reading_5: 'b', reading_6: 'c', reading_7: 'false', reading_8: 'surgery simulations, ancient civilizations',
-        reading_9: 'b', reading_10: 'energy-storage,ai-learning,vr-surgery,grid-infrastructure',
+s       reading_9: 'b', reading_10: 'energy-storage,ai-learning,vr-surgery,grid-infrastructure',
         // Professional Reading Questions (11-15)
         reading_11: 'b', reading_12: 'true', reading_13: 'human connection', 
         reading_14: 'denmark, germany', reading_15: 'b',
@@ -1166,8 +1166,9 @@ app.post("/api/payments/initialize", async (req, res) => {
         // Listening Section Answers  
         listening_1: 'b', listening_2: 'b', listening_3: 'a', listening_4: '250',
         listening_5: '5', listening_6: 'ai integration, voice control',
-        // Professional Listening Questions (7-10)
+s       // Professional Listening Questions (7-10)
         listening_7: 'a', listening_8: '12', listening_9: 'd', listening_10: 'multilingual workforce, tech hubs'
+sectionScores.reading,
       };
 
       const sectionScores = {
@@ -1188,7 +1189,7 @@ app.post("/api/payments/initialize", async (req, res) => {
         reading: 0,
         listening: 0,
         writing: 0,
-        speaking: 0
+s       speaking: 0
       };
 
       // Evaluate answers against correct answers
@@ -1217,14 +1218,14 @@ app.post("/api/payments/initialize", async (req, res) => {
                 const userSelections = userAnswer.split(',').map(s => s.trim()).filter(Boolean).sort();
                 const correctSelections = correctAnswerLower.split(',').map(s => s.trim()).filter(Boolean).sort();
                 const matches = userSelections.filter((sel: string) => correctSelections.includes(sel)).length;
-                isCorrect = matches >= correctSelections.length * 0.6; // Lower threshold to 60%
+i               isCorrect = matches >= correctSelections.length * 0.6; // Lower threshold to 60%
               } else {
                 // Multiple choice and true/false - exact match
                 isCorrect = userAnswer === correctAnswerLower;
               }
             }
           } else if (section === 'writing') {
-            // Writing scoring based on word count and content quality
+a           // Writing scoring based on word count and content quality
             const wordCount = userAnswer.split(/\s+/).filter(Boolean).length;
             let score = 0;
             
@@ -1235,7 +1236,7 @@ app.post("/api/payments/initialize", async (req, res) => {
               else score += 10;
               
               // Content analysis (simplified)
-              if (userAnswer.includes('executive') || userAnswer.includes('summary')) score += 15;
+s             if (userAnswer.includes('executive') || userAnswer.includes('summary')) score += 15;
               if (userAnswer.includes('recommendation') || userAnswer.includes('conclude')) score += 15;
               if (userAnswer.includes('benefit') || userAnswer.includes('cost')) score += 15;
               if (userAnswer.includes('employee') || userAnswer.includes('wellness')) score += 15;
@@ -1249,7 +1250,7 @@ app.post("/api/payments/initialize", async (req, res) => {
               else score += 5;
               
               // Content analysis for argumentative essay
-              if (userAnswer.includes('agree') || userAnswer.includes('disagree')) score += 15;
+s             if (userAnswer.includes('agree') || userAnswer.includes('disagree')) score += 15;
               if (userAnswer.includes('example') || userAnswer.includes('instance')) score += 15;
               if (userAnswer.includes('advantage') || userAnswer.includes('benefit')) score += 10;
               if (userAnswer.includes('disadvantage') || userAnswer.includes('problem')) score += 10;
@@ -1263,30 +1264,30 @@ app.post("/api/payments/initialize", async (req, res) => {
           } else if (section === 'speaking') {
             // Speaking scoring based on audio data presence and length
             if (answer.answer && typeof answer.answer === 'object' && 'audioData' in answer.answer) {
-              const audioData = answer.answer as { audioData?: string; size?: number; recordedAt?: string };
+s             const audioData = answer.answer as { audioData?: string; size?: number; recordedAt?: string };
               const audioSize = audioData.size || 0;
               const recordedAt = audioData.recordedAt;
               
               let score = 60; // Base score for providing audio
               
               // Score based on audio file size (proxy for length and quality)
-              if (audioSize > 100000) score += 20; // Good length recording
+s             if (audioSize > 100000) score += 20; // Good length recording
               else if (audioSize > 50000) score += 15;
               else if (audioSize > 20000) score += 10;
               else score += 5;
               
               // Bonus for completing within reasonable time
-              if (recordedAt) score += 15;
+s             if (recordedAt) score += 15;
               
               sectionScores[section] += Math.min(score, 100);
               return;
             }
             
             // Default score if no audio provided
-            sectionScores[section] += 40;
+s           sectionScores[section] += 40;
             return;
           }
-          
+         s
           if (isCorrect) {
             sectionCorrect[section]++;
           }
@@ -1298,7 +1299,7 @@ app.post("/api/payments/initialize", async (req, res) => {
         const key = section as keyof typeof sectionScores;
         
         if (key === 'reading' || key === 'listening') {
-          if (sectionCounts[key] > 0) {
+  s        if (sectionCounts[key] > 0) {
             const accuracy = sectionCorrect[key] / sectionCounts[key];
             
             // Enhanced scoring algorithm for better performance assessment
@@ -1309,7 +1310,7 @@ app.post("/api/payments/initialize", async (req, res) => {
             else if (accuracy >= 0.60) score = 55; // Satisfactory
             else if (accuracy >= 0.50) score = 45; // Needs improvement
             else if (accuracy >= 0.40) score = 35; // Poor
-            else score = 25; // Very poor
+s           else score = 25; // Very poor
             
             // Add bonus points for consistent performance
             if (sectionCounts[key] >= 10 && accuracy >= 0.75) {
@@ -1317,7 +1318,7 @@ app.post("/api/payments/initialize", async (req, res) => {
             }
             
             sectionScores[key] = Math.min(100, score);
-          } else {
+s         } else {
             sectionScores[key] = 0; // Zero score for no answers instead of 30
           }
         } else if (key === 'writing' || key === 'speaking') {
@@ -1328,7 +1329,7 @@ app.post("/api/payments/initialize", async (req, res) => {
             // Performance adjustment for writing/speaking consistency
             if (sectionCounts[key] >= 2) {
               // Bonus for completing all tasks
-              avgScore += 5;
+s             avgScore += 5;
             }
             
             sectionScores[key] = Math.min(100, avgScore);
@@ -1340,7 +1341,7 @@ app.post("/api/payments/initialize", async (req, res) => {
 
       const totalScore = Math.round(
         (sectionScores.reading + sectionScores.listening + sectionScores.writing + sectionScores.speaking) / 4
-      );
+  s   );
 
       // Generate certificate ID
       const certificateId = `EP${new Date().getFullYear()}-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`;
@@ -1351,7 +1352,7 @@ app.post("/api/payments/initialize", async (req, res) => {
         completedAt: new Date(),
         totalScore,
         readingScore: sectionScores.reading,
-all     listeningScore: sectionScores.listening,
+Two       listeningScore: sectionScores.listening,
         writingScore: sectionScores.writing,
         speakingScore: sectionScores.speaking,
         certificateId
@@ -1367,11 +1368,11 @@ all     listeningScore: sectionScores.listening,
           listening: sectionScores.listening,
           writing: sectionScores.writing,
           speaking: sectionScores.speaking
-    M     },
+        },
         certificateId
       });
     } catch (error) {
-      console.error("Submit test error:", error);
+s     console.error("Submit test error:", error);
       res.status(500).json({ message: "Failed to submit test" });
     }
   });
