@@ -1,11 +1,11 @@
 # =========================================================
-# ✅ SINGLE-STAGE PRODUCTION BUILD (full-size, stable)
+# 1️⃣ BUILD STAGE
 # =========================================================
-FROM node:20-alpine
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install full build toolchain for node-canvas and Vite
+# Install native build deps (for canvas)
 RUN apk add --no-cache \
   python3 \
   make \
@@ -15,31 +15,51 @@ RUN apk add --no-cache \
   jpeg-dev \
   pango-dev \
   giflib-dev \
-  pixman-dev \
-  bash
+  pixman-dev
 
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including devDependencies for build)
+# Install all deps (including dev) for build
 RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build frontend + backend
+# ✅ Build frontend & backend
 RUN npm run build
 
-# Expose your app’s port (Dokploy auto-detects this)
+# =========================================================
+# 2️⃣ RUNTIME STAGE
+# =========================================================
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Install runtime deps for canvas
+RUN apk add --no-cache \
+  cairo \
+  jpeg \
+  pango \
+  giflib \
+  pixman
+
+# Copy package files and install only production deps
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy built files from builder
+COPY --from=builder /app/dist ./dist
+
+# Diagnostic log to confirm build result
+RUN echo "=== DIST CONTENTS ===" && ls -R dist || true
+
+# Expose port
 EXPOSE 5000
 
-# Environment configuration
+# Environment variables
 ENV NODE_ENV=production
 ENV PORT=5000
 
-# Optional healthcheck for Dokploy (auto waits until live)
-HEALTHCHECK --interval=30s --timeout=10s --retries=5 \
-  CMD wget -qO- http://localhost:5000/health || exit 1
-
-# Run your compiled server
-CMD ["node", "dist/server/index.js"]
+# ✅ Add small delay to let Coolify proxy connect
+CMD ["sh", "-c", "echo 'Starting in 3s...' && sleep 3 && ls dist/server && node dist/server/index.js"]
