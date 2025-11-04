@@ -5,7 +5,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install native build deps (for canvas)
+# Install build dependencies for canvas
 RUN apk add --no-cache \
   python3 \
   make \
@@ -26,7 +26,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# ✅ Build frontend & backend
+# Build frontend & backend
 RUN npm run build
 
 # =========================================================
@@ -36,30 +36,35 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install runtime deps for canvas
+# ✅ Include Python so node-gyp can rebuild native modules (like canvas)
 RUN apk add --no-cache \
+  python3 \
+  make \
+  g++ \
+  pkgconf \
   cairo \
   jpeg \
   pango \
   giflib \
   pixman
 
-# Copy package files and install only production deps
+# Copy package files
 COPY package*.json ./
-RUN npm ci --omit=dev
 
-# Copy built files from builder
+# ✅ Copy prebuilt node_modules from builder (avoid rebuilding canvas)
+COPY --from=builder /app/node_modules ./node_modules
+
+# ✅ Copy built files
 COPY --from=builder /app/dist ./dist
 
-# Diagnostic log to confirm build result
+# Diagnostic output to confirm files
 RUN echo "=== DIST CONTENTS ===" && ls -R dist || true
 
 # Expose port
 EXPOSE 5000
 
-# Environment variables
 ENV NODE_ENV=production
 ENV PORT=5000
 
-# ✅ Add small delay to let Coolify proxy connect
-CMD ["sh", "-c", "echo 'Starting in 3s...' && sleep 3 && ls dist/server && node dist/server/index.js"]
+# ✅ Delay for Dokploy proxy sync + start app
+CMD ["sh", "-c", "echo 'Starting in 3s...' && sleep 3 && node dist/server/index.js"]
