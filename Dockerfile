@@ -39,7 +39,7 @@ ENV PORT=5000
 
 # Optional healthcheck for Dokploy (auto waits until live)
 HEALTHCHECK --interval=30s --timeout=10s --retries=5 \
-  CMD wget -qO- http://localhost:5000/ || exit 1
+  CMD wget -qO- http://localhost:5000/health || exit 1
 
 # Run your compiled server
 CMD ["node", "dist/server/index.js"]
