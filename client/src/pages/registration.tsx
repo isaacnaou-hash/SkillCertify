@@ -160,7 +160,8 @@ export default function Registration() {
       
       // Check if Paystack is configured
       // 🔥 FIX: Check both VITE_ and non-VITE keys for resiliency
-      const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || import.meta.env.PAYSTACK_PUBLIC_KEY;
+     const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+
       console.log("Paystack public key available:", !!paystackPublicKey);
       
       if (!paystackPublicKey) {
@@ -247,7 +248,8 @@ export default function Registration() {
       
       // Check if Paystack is configured
       // 🔥 FIX: Check both VITE_ and non-VITE keys for resiliency
-      const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || import.meta.env.PAYSTACK_PUBLIC_KEY;
+      const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+
       
       if (!paystackPublicKey) {
         throw new Error("Payment system not configured. Please contact support.");
