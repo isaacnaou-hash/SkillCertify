@@ -37,7 +37,7 @@ function getPaystackPublicKey(): string | false {
   const viteKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
   
   // Dokploy might inject this variable at RUN time
-  const plainKey = (import.meta.env as any).PAYSTACK_PUBLIC_KEY; 
+ const plainKey = null;
 
   // Use whichever one is available and starts with 'pk_'
   const key = viteKey || plainKey;
