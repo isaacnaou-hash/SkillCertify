@@ -5,18 +5,6 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies required to build canvas
-RUN apk add --no-cache \
-  python3 \
-  make \
-  g++ \
-  pkgconf \
-  cairo-dev \
-  jpeg-dev \
-  pango-dev \
-  giflib-dev \
-  pixman-dev
-
 COPY package*.json ./
 RUN npm ci
 
