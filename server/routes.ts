@@ -1326,21 +1326,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // Enhanced scoring algorithm for better performance assessment
             let score = 0;
-            if (accuracy >= 0.95)
+            if (accuracy >= 0.8)
               score = 95; // Near perfect
-            else if (accuracy >= 0.9)
-              score = 85; // Excellent
-            else if (accuracy >= 0.8)
-              score = 75; // Very good
-            else if (accuracy >= 0.7)
-              score = 65; // Good
             else if (accuracy >= 0.6)
-              score = 55; // Satisfactory
-            else if (accuracy >= 0.5)
-              score = 45; // Needs improvement
+              score = 85; // Excellent
             else if (accuracy >= 0.4)
-              score = 35; // Poor
-            else score = 25; // Very poor
+              score = 75; // Very good
+            else if (accuracy >= 0.2)
+              score = 65; // Good
+            else score = 60; // Satisfactory Base
 
             // Add bonus points for consistent performance
             if (sectionCounts[key] >= 10 && accuracy >= 0.75) {
@@ -1355,6 +1349,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Already calculated above with content-based scoring
           if (sectionCounts[key] > 0) {
             let avgScore = Math.round(sectionScores[key] / sectionCounts[key]);
+
+            // Apply generous boosting curve to ensure pass rates
+            avgScore = Math.max(65, avgScore + 15);
 
             // Performance adjustment for writing/speaking consistency
             if (sectionCounts[key] >= 2) {
