@@ -608,11 +608,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const currency = verifyData.data.currency;
           const metadata = verifyData.data.metadata || {};
 
-          // Expected amounts: $8 USD = 800 cents, ₦8,000 = 800000 kobo, KES 1,000 = 100000 cents
+          // Expected amounts: $16 USD = 1600 cents, ₦16,000 = 1600000 kobo, KES 1,900 = 190000 cents
           const validAmounts = {
-            USD: 800, // $8 in cents
-            NGN: 800000, // ₦8,000 in kobo (approximate)
-            KES: 100000, // KES 1,000 in cents (for M-Pesa)
+            USD: 1600, // $16 in cents
+            NGN: 1600000, // ₦16,000 in kobo (approximate)
+            KES: 190000, // KES 1,900 in cents (for M-Pesa)
           };
 
           const expectedAmount =
@@ -1006,11 +1006,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Flexible payment verification for webhook
           const metadata = event.data.metadata || {};
 
-          // Expected amounts: $8 USD = 800 cents, ₦8,000 = 800000 kobo, KES 1,000 = 100000 cents
+          // Expected amounts: $16 USD = 1600 cents, ₦16,000 = 1600000 kobo, KES 1,900 = 190000 cents
           const validAmounts = {
-            USD: 800,
-            NGN: 800000,
-            KES: 100000, // KES 1,000 in cents (for M-Pesa)
+            USD: 1600,
+            NGN: 1600000,
+            KES: 190000, // KES 1,900 in cents (for M-Pesa)
           };
 
           const expectedAmount =

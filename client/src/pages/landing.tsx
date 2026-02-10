@@ -123,8 +123,8 @@ export default function Landing() {
           <div className="flex justify-center animate-fade-in-up px-4" style={{animationDelay: '0.8s'}}>
             <Link href="/register" className="w-full sm:w-auto">
               <Button size="lg" className="btn-gradient group w-full sm:w-auto px-6 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1" data-testid="button-take-test">
-                <span className="hidden sm:inline">Take Your English Test Now - $8</span>
-                <span className="sm:hidden">Start Test - $8</span>
+                <span className="hidden sm:inline">Take Your English Test Now - $16</span>
+                <span className="sm:hidden">Start Test - $16</span>
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform duration-300" />
               </Button>
             </Link>
@@ -316,7 +316,7 @@ export default function Landing() {
                   <div className="absolute -top-2 -right-2 w-6 h-6 sm:w-8 sm:h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm sm:text-base font-bold">2</div>
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-blue-700 mb-2 sm:mb-3">Pay Securely</h3>
-                <p className="text-sm sm:text-base text-blue-600">Safe $8 payment via Paystack. All major cards accepted worldwide.</p>
+                <p className="text-sm sm:text-base text-blue-600">Safe $16 payment via Paystack. All major cards accepted worldwide.</p>
               </div>
 
               <div className="text-center p-4 sm:p-6">
@@ -501,7 +501,7 @@ export default function Landing() {
               </div>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">Professional English Certification</h2>
               <div className="mb-4 sm:mb-6">
-                <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary">$8</span>
+                <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary">$16</span>
                 <span className="text-muted-foreground text-sm sm:text-base">/assessment</span>
                 <div className="text-xs sm:text-sm text-muted-foreground mt-2">Industry-standard pricing since 2018 • No hidden fees</div>
               </div>

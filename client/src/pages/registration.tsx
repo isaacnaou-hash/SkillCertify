@@ -172,7 +172,7 @@ export default function Registration() {
       console.log("Initializing Paystack payment...");
       const paymentResult = await initializePaystack({
         email: userEmail!,
-        amount: paymentMethod === 'card' ? 800 : 100000, // $8 USD or KES 1,000 in kobo
+        amount: paymentMethod === 'card' ? 1600 : 190000, // $16 USD or KES 1,900 in kobo
         firstName: "Test", // We don't store first/last name separately, using placeholder
         lastName: "User",
         sessionId: session.id,
@@ -265,7 +265,7 @@ export default function Registration() {
       // Initialize Paystack payment with real session ID
       const paymentResult = await initializePaystack({
         email: userInfo.email,
-        amount: paymentMethod === 'card' ? 800 : 100000, // $8 USD or KES 1,000 in kobo
+        amount: paymentMethod === 'card' ? 1600 : 190000, // $16 USD or KES 1,900 in kobo
         firstName: userInfo.firstName,
         lastName: userInfo.lastName,
         sessionId: session.id, // Use real session ID
@@ -374,7 +374,7 @@ export default function Registration() {
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
               <div className="flex justify-between items-center">
                 <span className="font-medium text-gray-900 dark:text-white">Test Fee:</span>
-                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">$8 USD</span>
+                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">$16 USD</span>
               </div>
             </div>
 
@@ -564,7 +564,7 @@ export default function Registration() {
                             <p className="text-sm text-gray-600 dark:text-gray-300">
                               Visa, Mastercard, and other major cards
                             </p>
-                            <div className="text-lg font-bold text-blue-600 mt-2">$8.00 USD</div>
+                            <div className="text-lg font-bold text-blue-600 mt-2">$16.00 USD</div>
                           </div>
                         </div>
                       </div>
@@ -599,7 +599,7 @@ export default function Registration() {
                             <p className="text-sm text-gray-600 dark:text-gray-300">
                               Pay with your M-Pesa account (Kenya)
                             </p>
-                            <div className="text-lg font-bold text-green-600 mt-2">KES 1,000</div>
+                            <div className="text-lg font-bold text-green-600 mt-2">KES 1,900</div>
                           </div>
                         </div>
                       </div>
@@ -633,7 +633,7 @@ export default function Registration() {
                         </div>
                         <div className="text-center sm:text-right">
                           <div className="text-3xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-                            {paymentMethod === 'card' ? '$8.00 USD' : 'KES 1,000'}
+                            {paymentMethod === 'card' ? '$16.00 USD' : 'KES 1,900'}
                           </div>
                           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">One-time fee</p>
                         </div>
@@ -807,9 +807,9 @@ export default function Registration() {
                               : paymentMethod === 'card' ? "Processing Card Payment..." : "Processing M-Pesa Payment..."
                             : registerMutation.isPending 
                             ? "Creating account..." 
-                            : paymentMethod === 'card' 
-                              ? <><span className="block sm:inline">Pay $8 with Card</span><span className="hidden sm:inline"> & </span><span className="block sm:inline">Begin Assessment</span></>
-                              : <><span className="block sm:inline">Pay KES 1,000 with M-Pesa</span><span className="hidden sm:inline"> & </span><span className="block sm:inline">Begin Assessment</span></>
+                            : paymentMethod === 'card' 
+                                      ? <><span className="block sm:inline">Pay $16 with Card</span><span className="hidden sm:inline"> & </span><span className="block sm:inline">Begin Assessment</span></>
+                                      : <><span className="block sm:inline">Pay KES 1,900 with M-Pesa</span><span className="hidden sm:inline"> & </span><span className="block sm:inline">Begin Assessment</span></>
                           }
                         </span>
                       </div>
