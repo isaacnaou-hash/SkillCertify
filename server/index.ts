@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import http from "http";
+import compression from "compression";
 import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./vite"; // ✅ static serving imported directly
 import path from "path";
