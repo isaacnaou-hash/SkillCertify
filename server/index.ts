@@ -44,6 +44,7 @@ app.use("/api/payments/webhook", (req, res, next) => {
 /* ──────────────────────────────
    ✅  BODY PARSERS
 ────────────────────────────── */
+app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

@@ -149,7 +149,7 @@ export default function Landing() {
               <p className="text-xs sm:text-sm md:text-base text-yellow-600 dark:text-yellow-400 font-semibold">Minutes<br className="sm:hidden" /> Complete Test</p>
             </div>
             <div className="animate-bounce-in" style={{animationDelay: '0.4s'}}>
-              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-blue-600 mb-1 sm:mb-2">$8</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-blue-600 mb-1 sm:mb-2">$16</div>
               <p className="text-xs sm:text-sm md:text-base text-yellow-600 dark:text-yellow-400 font-semibold">Complete Test<br className="sm:hidden" /> & Certificate</p>
             </div>
           </div>
