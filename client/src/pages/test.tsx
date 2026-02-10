@@ -305,7 +305,7 @@ export default function Test() {
   const [currentSection, setCurrentSection] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [timeRemaining, setTimeRemaining] = useState(3600); // 60 minutes
+  const [timeRemaining, setTimeRemaining] = useState(7200); // 120 minutes
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
 

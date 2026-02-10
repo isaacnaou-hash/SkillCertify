@@ -33,9 +33,9 @@ function validateSessionToken(sessionId: string, token: string): boolean {
     return false;
   }
 
-  // Check token expiration (2 hours = 7200000ms)
+  // Check token expiration (4 hours = 14400000ms)
   const now = Date.now();
-  if (now - tokenData.createdAt > 7200000) {
+  if (now - tokenData.createdAt > 14400000) {
     sessionTokens.delete(token); // Clean up expired token
     return false;
   }
