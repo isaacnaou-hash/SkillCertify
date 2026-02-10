@@ -23,18 +23,6 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Runtime-only dependencies for canvas
-RUN apk add --no-cache \
-  cairo \
-  jpeg \
-  pango \
-  giflib \
-  pixman \
-  python3 \
-  make \
-  g++ \
-  pkgconf
-
 # ✅ Copy ONLY package.json files
 COPY package*.json ./
 
